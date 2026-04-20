@@ -1323,31 +1323,40 @@
   .rl-about { padding: 72px 0; }
 }
 
-/* ═══ WORLD MAP UNDER COUNTRY CARDS ═══ */
+/* ═══ WORLD MAP AS PRIMARY GLOBAL PRESENCE VISUAL ═══ */
 .rl-worldmap-wrap {
-  margin-top: 70px;
-  padding-top: 40px;
-  border-top: 1px solid rgba(201, 146, 10, 0.2);
+  margin-top: 52px;
+  padding-top: 20px;
 }
 .rl-worldmap-caption { text-align: center; margin-bottom: 26px; }
 .rl-worldmap-inner {
   position: relative;
-  max-width: 1000px;
+  max-width: 1040px;
   margin: 0 auto;
-  aspect-ratio: 16 / 10;
+  aspect-ratio: 1 / 1;
 }
 .rl-worldmap-img {
   width: 100%; height: 100%;
   object-fit: contain;
-  filter: invert(0.9) sepia(0.3) hue-rotate(10deg) saturate(0.85) brightness(0.85);
-  opacity: 0.72;
+  /* Turn the grey continents into a warm cream tone that sits on the dark brown bg. */
+  filter: invert(1) sepia(0.35) hue-rotate(355deg) saturate(1.4) brightness(0.92);
+  opacity: 0.88;
   display: block;
 }
 .rl-worldmap-pin {
   position: absolute;
   transform: translate(-50%, -50%);
-  pointer-events: auto;
+  background: none;
+  border: 0;
+  padding: 0;
   cursor: default;
+  outline: none;
+}
+.rl-worldmap-pin.clickable { cursor: pointer; }
+.rl-worldmap-pin.clickable:hover .rl-worldmap-dot { transform: scale(1.25); }
+.rl-worldmap-pin.active .rl-worldmap-dot {
+  background: var(--rl-red);
+  box-shadow: 0 0 0 3px rgba(26, 12, 5, 0.7), 0 0 18px rgba(200, 16, 46, 0.7);
 }
 .rl-worldmap-pulse {
   position: absolute;
@@ -1356,22 +1365,24 @@
   transform: translate(-50%, -50%);
   border-radius: 50%;
   background: var(--rl-gold);
-  opacity: 0.3;
+  opacity: 0.35;
   animation: rl-pulse-ring 2.2s ease-out infinite;
 }
+.rl-worldmap-pin.active .rl-worldmap-pulse { background: var(--rl-red); }
 @keyframes rl-pulse-ring {
   0%   { transform: translate(-50%, -50%) scale(0.4); opacity: 0.55; }
-  80%  { transform: translate(-50%, -50%) scale(1.7); opacity: 0; }
-  100% { transform: translate(-50%, -50%) scale(1.7); opacity: 0; }
+  80%  { transform: translate(-50%, -50%) scale(1.8); opacity: 0; }
+  100% { transform: translate(-50%, -50%) scale(1.8); opacity: 0; }
 }
 .rl-worldmap-dot {
   position: relative;
   display: block;
-  width: 12px; height: 12px;
+  width: 13px; height: 13px;
   border-radius: 50%;
   background: var(--rl-gold);
-  box-shadow: 0 0 0 3px rgba(26, 12, 5, 0.7), 0 0 14px rgba(201, 146, 10, 0.6);
+  box-shadow: 0 0 0 3px rgba(26, 12, 5, 0.75), 0 0 16px rgba(201, 146, 10, 0.7);
   z-index: 2;
+  transition: transform 260ms ease, background 260ms ease;
 }
 .rl-worldmap-label {
   position: absolute;
@@ -1387,6 +1398,7 @@
   padding: 4px 10px;
   white-space: nowrap;
   border: 1px solid var(--rl-gold);
+  pointer-events: none;
 }
 .rl-worldmap-label::after {
   content: '';
@@ -1397,6 +1409,12 @@
   background: var(--rl-cream);
   border-right: 1px solid var(--rl-gold);
   border-bottom: 1px solid var(--rl-gold);
+}
+
+@media (max-width: 640px) {
+  .rl-worldmap-label { font-size: 9px; padding: 3px 7px; top: -24px; }
+  .rl-worldmap-pulse { width: 22px; height: 22px; }
+  .rl-worldmap-dot { width: 10px; height: 10px; }
 }
 
 /* ═══ VENUE / ADDRESS CLICKABLE LINK ═══ */

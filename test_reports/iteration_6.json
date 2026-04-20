@@ -1,0 +1,82 @@
+{
+  "summary": "Iteration 6 verification of the rewritten 'Our Global Presence' section. Backend 6/6 pytest pass (regression OK). Structural frontend acceptance criteria ALL PASS: old country cards/grid/testids are fully removed; new map URL contains 'dghkanxm'; [data-testid='world-map'] renders with exactly 5 pins (worldmap-pin-{in,ae,gb,my,sg}); each pin has animated pulse + dot + label; labels read 'United Kingdom','UAE','India · Tap/Hide','Malaysia','Singapore'; clicking worldmap-pin-in toggles india-cities-expand with exactly 16 city chips; clicking again collapses; non-India pins do NOT toggle the expand panel. HOWEVER the #1 user acceptance criterion (pin must land on the correct country) FAILS for ALL 5 pins due to a CSS layout bug. RCA and corrected coordinates are provided below.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [
+      {"component": "Footprint.jsx world map", "issue": "UK pin lands on Greenland / ocean near top edge (y=5.7% of actual image). Should be on British Isles.", "selector": "[data-testid='worldmap-pin-gb']", "priority": "HIGH"},
+      {"component": "Footprint.jsx world map", "issue": "India pin lands on Arabian Sea / Oman coast — NOT on Indian subcontinent. This is the user's explicit #1 complaint: 'country ki location aache se dekho wrong hai, indian hai to uspe point karo'.", "selector": "[data-testid='worldmap-pin-in']", "priority": "CRITICAL"},
+      {"component": "Footprint.jsx world map", "issue": "UAE pin lands on Saudi Arabia / Red Sea (approx 6% too far west).", "selector": "[data-testid='worldmap-pin-ae']", "priority": "HIGH"},
+      {"component": "Footprint.jsx world map", "issue": "Malaysia pin lands in Indian Ocean south of India — completely off the SE Asia landmass.", "selector": "[data-testid='worldmap-pin-my']", "priority": "CRITICAL"},
+      {"component": "Footprint.jsx world map", "issue": "Singapore pin lands deep in Indian Ocean east of Madagascar, nowhere near Singapore.", "selector": "[data-testid='worldmap-pin-sg']", "priority": "CRITICAL"}
+    ],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "Footprint / Our Global Presence", "issues": ["With .rl-worldmap-inner aspect-ratio 1/1 and object-fit: contain, the 1920x975 map renders as a 1040x528 band centred vertically inside a 1040x1040 box. This leaves ~256px of empty (dark brown) space above and below the map and is the direct cause of the pin miscalibration. Either change the inner container's aspect-ratio to match the image (1920/975) or remap every pin's y value to account for the 24.6% top letterbox."]}
+    ]
+  },
+  "pin_position_measurements": {
+    "container": "1040 x 1040 (aspect-ratio: 1/1)",
+    "displayed_image": "1040 x 528 with offsetY=255.9px (object-fit: contain on 1920x975 natural)",
+    "current_coords_in_container_percent": {
+      "gb": {"x": 45.8, "y": 27.5}, "ae": {"x": 58.8, "y": 41.5},
+      "in": {"x": 65.0, "y": 44.0}, "my": {"x": 72.0, "y": 52.0}, "sg": {"x": 72.4, "y": 54.2}
+    },
+    "equivalent_coords_on_actual_image_percent": {
+      "gb": {"x": 45.8, "y": 5.69}, "ae": {"x": 58.8, "y": 33.26},
+      "in": {"x": 65.0, "y": 38.18}, "my": {"x": 72.0, "y": 53.94}, "sg": {"x": 72.4, "y": 58.27}
+    },
+    "recommended_image_native_coords_after_fixing_aspect_ratio": {
+      "gb": {"x": 47.0, "y": 24.0, "note": "British Isles"},
+      "ae": {"x": 62.0, "y": 38.0, "note": "UAE / Dubai, tip of Arabian peninsula"},
+      "in": {"x": 70.0, "y": 43.0, "note": "Mumbai / western India landmass"},
+      "my": {"x": 77.5, "y": 51.0, "note": "Kuala Lumpur"},
+      "sg": {"x": 78.0, "y": 53.0, "note": "Singapore, just south of KL"}
+    },
+    "alternative_container_coords_if_keeping_aspect_ratio_1_1": {
+      "formula": "y_container = 24.6 + y_image_target * 0.508",
+      "gb": {"x": 47.0, "y": 36.8}, "ae": {"x": 62.0, "y": 43.9},
+      "in": {"x": 70.0, "y": 46.4}, "my": {"x": 77.5, "y": 50.5}, "sg": {"x": 78.0, "y": 51.5}
+    }
+  },
+  "rca_of_the_issue": {
+    "symptom": "All 5 pins are visibly placed off their target countries on the rendered world map. India pin is the most user-visible offender (floating in Arabian Sea).",
+    "root_cause": ".rl-worldmap-inner has aspect-ratio: 1/1 but the map PNG is ~1920x975 (≈1.97:1). With object-fit: contain, the rendered picture only fills the middle 528px of the 1040px-tall container — leaving 24.6% empty band above and 24.6% below. Pin coordinates in Footprint.jsx are expressed as a percentage of the CONTAINER, so pins calibrated in image-native space appear shifted vertically toward the top and the x-mapping is also slightly off.",
+    "reproduction": "1) Open preview URL, scroll to #footprint. 2) Observe UK pin above Canada/Greenland, Malaysia pin in Indian Ocean, Singapore pin near Australia's meridian in ocean, India pin on the Oman/Arabian Sea coast.",
+    "mitigation": "Apply Option A (recommended): in /app/frontend/src/App.css change `.rl-worldmap-inner { aspect-ratio: 1 / 1 }` to `aspect-ratio: 1920 / 975` (or simply `aspect-ratio: 2 / 1`). Then update /app/frontend/src/components/sections/Footprint.jsx `pins` array to the image-native coords listed above. After the fix the India pin will visibly sit on the Indian subcontinent and all 5 countries will be correctly tagged."
+  },
+  "verification_details": {
+    "backend_pytest": "6/6 PASS (test_rudralife_api.py) — /api/, /api/register (valid/invalid email/missing field/optional message), /api/registrations",
+    "footprint_section_exists": "PASS",
+    "old_country_cards_removed": "PASS — .rl-country-grid, .rl-country-card, country-in/ae/gb/sg/my test ids all absent",
+    "map_url_contains_dghkanxm": "PASS — https://customer-assets.emergentagent.com/job_sacred-rudraksha-hub/artifacts/dghkanxm_image.png",
+    "world_map_testid": "PASS",
+    "five_pins_present": "PASS — worldmap-pin-{in,ae,gb,my,sg}",
+    "pulse_dot_label": "PASS for every pin",
+    "labels_text": "PASS — 'United Kingdom','UAE','India · Tap' -> 'India · Hide' on open, 'Malaysia','Singapore'",
+    "india_pin_toggle_expand": "PASS — opens india-cities-expand with 16 chips on click, collapses on 2nd click",
+    "non_india_pins_do_not_toggle": "PASS — clicking worldmap-pin-ae does not open expand",
+    "pin_geographic_accuracy_1920x1000": "FAIL — see pin_position_measurements and ui_bugs",
+    "pin_geographic_accuracy_1440x900": "FAIL — pins remain in same % positions and fall in wrong locations"
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_rudralife_api.py",
+    "/app/test_reports/pytest/pytest_iter6.xml"
+  ],
+  "action_items": [
+    "CRITICAL: Fix pin geographic placement. Preferred fix: in App.css change `.rl-worldmap-inner { aspect-ratio: 1 / 1 }` to `aspect-ratio: 1920 / 975`; in Footprint.jsx update pins array to gb {47,24}, ae {62,38}, in {70,43}, my {77.5,51}, sg {78,53}. This is the #1 user requirement and currently fails.",
+    "After repositioning, re-verify India pin sits on Indian subcontinent (user's explicit requirement).",
+    "Optional: after moving Malaysia to {77.5,51} and Singapore to {78,53} — very close pair — add a small label offset (e.g. Singapore label top:-14px or translateY to avoid overlap with Malaysia's label)."
+  ],
+  "critical_code_review_comments": [
+    "[CRITICAL] Footprint.jsx + App.css coordinate system mismatch: pins positioned in container % but container is letterboxed. Either make container match image aspect-ratio or precompute pin coords in container space. Without this, ANY pin coord appears mis-aligned vertically.",
+    "[INFO] The filter `invert(1) sepia(0.35) hue-rotate(355deg) saturate(1.4) brightness(0.92)` on the map is not actually taking effect visibly in preview (map still looks grey/charcoal on brown) — cosmetic only, but worth verifying in a browser that supports the stack.",
+    "[MINOR] Malaysia and Singapore pins are only ~2° apart IRL; even at correct coords their labels will visually overlap. Consider offsetting Singapore's label below the dot (top: 14px) instead of above to separate the two pill labels."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "100% (6/6)", "frontend": "Structural: 100%; Geographic pin accuracy: 0/5 pins correctly placed"},
+  "test_credentials": "N/A (no auth)",
+  "seed_data_creation": "1 TEST_ registration created by pytest suite via POST /api/register",
+  "retest_needed": true,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "If main agent applies Option A fix (aspect-ratio 1920/975 + recommended pin coords), re-screenshot footprint at 1920x1000 and confirm visually: India pin on Indian subcontinent, UK on British Isles, UAE on Arabian peninsula tip, KL and Singapore on SE Asia peninsula. If main agent keeps aspect-ratio 1/1, they must instead use the 'alternative_container_coords' values. Also verify india-cities-expand still opens on pin click after the coord change (behavior is independent of coords, but worth a smoke test)."
+}
