@@ -1,0 +1,34 @@
+{
+  "summary": "Iteration 4 frontend retest — tablet-portrait mala cropping bug from iter3 is FIXED. The @media (max-width: 1100px) stacking rule is applied correctly. Verified at 820x1180, 768x1024, 390x844 and 1920x1000. Registration end-to-end flow still works. No regressions.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": ["/app/test_reports/iteration_4.json"],
+  "verification_details": {
+    "tablet_portrait_820x1180": "PASS — .rl-hero-bg has position:relative, height=613.6px, background-position=0% 50% (left center). Siddha Mala beads + Om pendant + half-pendant fully visible at top of banner. Text stacks below on warm-dark background.",
+    "tablet_portrait_768x1024": "PASS — same stacked layout, bg height 532.5px, bgPos 0% 50%. Mala fully visible.",
+    "mobile_390x844": "PASS — bg height 337.6px, bgPos 0% 50%. Mala fully visible at top.",
+    "desktop_1920x1000": "PASS — bg reverts to position:absolute, full viewport 1920x1000, bgPos 50% 50%. Mala on left half of banner, text overlay on right. Sheen gradient darkens right side for text legibility.",
+    "hero_heading": "PASS — reads 'Explore with Rudralife' (italic gold on Rudralife). 'Empower Yourself' NOT present.",
+    "hero_register_cta_bead_icon": "PASS — hero 'Register Now' button shows inline bead SVG (visible in all four screenshots). Note: nav-register-btn in header is a plain text 'REGISTER' button without svg — this is the original design, not a regression.",
+    "footprint_5_countries": "PASS — country-in, country-ae, country-gb, country-sg, country-my all present.",
+    "registration_flow_desktop": "PASS — nav-register-btn → step1 (TEST_ITER4 User / test_iter4@example.com) → step2 (9876543210 / Mumbai) → step3 (select-exhibition index 1, message) → submit → registration-success element rendered."
+  },
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Pre-existing React hydration warning: <span> inside <option> (RegistrationModal line 218, select-exhibition). Caused by the framework's dynamic-source annotation wrapping the {c.name} text in a styled span. Doesn't break functionality but should be cleaned up for production. Non-blocking.",
+    "Register Now bead SVG only exists on the hero CTA button, not on the nav header REGISTER button. Consistent with iter3 design.",
+    "Rate-limiting / captcha still absent on POST /api/register (carried from iter1/2/3)."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "not tested this iteration", "frontend": "100% — all acceptance criteria pass including previously failing tablet portrait"},
+  "test_credentials": "N/A (no auth)",
+  "seed_data_creation": "1 new TEST_ITER4 User registration (email test_iter4@example.com) persisted via end-to-end UI flow on desktop.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Iter3 bug (mala cropped at 761-1100px portrait) fully resolved by moving stacking breakpoint from 760px to 1100px in /app/frontend/src/App.css lines 259-289. CSS changes verified via getBoundingClientRect + getComputedStyle. Mala is now fully visible at 820x1180, 768x1024 and below. Desktop overlay layout preserved at ≥1101px.",
+  "rca_of_issue": "Previous RCA confirmed. Fix applied at /app/frontend/src/App.css: the media query that stacks hero layout (background-position:left center, height:52vh, content below banner) was changed from max-width:760px to max-width:1100px, covering the tablet portrait range where the 1920x720 landscape banner would otherwise be horizontally cropped by background-size:cover against a tall viewport. Verified working."
+}

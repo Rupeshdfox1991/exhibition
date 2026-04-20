@@ -253,29 +253,15 @@
 .rl-divider .line { width: 46px; height: 1px; background: var(--rl-gold); }
 .rl-divider .ornament { color: var(--rl-gold); font-size: 14px; }
 
-/* ─ Tablet: vignette spans more, text slightly narrower */
+/* ─ Tablet/Mobile: stack naturally. Banner stays on top via background-position left,
+       text sits below on warm-dark matched tone so it blends with banner.
+       Applies up to 1100px so iPad portrait / small tablets always show the mala. */
 @media (max-width: 1100px) {
-  .rl-hero-sheen {
-    background:
-      linear-gradient(90deg,
-        rgba(26, 12, 5, 0) 0%,
-        rgba(26, 12, 5, 0.15) 30%,
-        rgba(26, 12, 5, 0.55) 55%,
-        rgba(26, 12, 5, 0.82) 100%),
-      linear-gradient(180deg, rgba(26,12,5,0.2) 0%, rgba(26,12,5,0) 40%, rgba(26,12,5,0.5) 100%);
-  }
-  .rl-hero-wrap { padding: 110px 32px 50px; }
-  .rl-hero-text { max-width: 460px; }
-}
-
-/* ─ Mobile: stack naturally. Banner stays on top via background-position left,
-       text sits below on warm-dark matched tone so it blends with banner. */
-@media (max-width: 760px) {
   .rl-hero { min-height: unset; }
   .rl-hero-bg {
     position: relative;
-    height: 48vh;
-    min-height: 320px;
+    height: 52vh;
+    min-height: 360px;
     width: 100%;
     background-position: left center;
     background-size: cover;
@@ -283,8 +269,8 @@
   .rl-hero-sheen {
     position: absolute;
     top: 0; left: 0; right: 0;
-    height: 48vh;
-    min-height: 320px;
+    height: 52vh;
+    min-height: 360px;
     background: linear-gradient(180deg,
       rgba(26, 12, 5, 0) 0%,
       rgba(26, 12, 5, 0) 55%,
@@ -293,20 +279,24 @@
   .rl-hero-wrap {
     position: relative;
     min-height: unset;
-    padding: 40px 22px 56px;
-    /* warm brown from banner bottom so text section blends with banner */
+    padding: 48px 32px 60px;
     background: linear-gradient(180deg, #1a0c05 0%, #150a04 100%);
     justify-content: flex-start;
   }
   .rl-hero-text { max-width: none; text-shadow: none; }
+  .rl-hero-stats { gap: 26px; margin-top: 36px; }
+  .rl-hero-est { margin-bottom: 20px; }
+}
+
+@media (max-width: 760px) {
+  .rl-hero-bg, .rl-hero-sheen { height: 44vh; min-height: 300px; }
+  .rl-hero-wrap { padding: 40px 22px 56px; }
   .rl-hero-title { font-size: 46px; }
-  .rl-hero-stats { gap: 22px; margin-top: 32px; }
-  .rl-hero-est { margin-bottom: 18px; }
 }
 
 /* ─ Very small phones */
 @media (max-width: 420px) {
-  .rl-hero-bg, .rl-hero-sheen { height: 42vh; min-height: 260px; }
+  .rl-hero-bg, .rl-hero-sheen { height: 40vh; min-height: 240px; }
   .rl-hero-title { font-size: 40px; }
 }
 
