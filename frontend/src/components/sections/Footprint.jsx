@@ -10,11 +10,11 @@ const MAP_URL =
  * Values are % of the map container: { x: left%, y: top% }.
  */
 const pins = [
-  { id: "gb", name: "United Kingdom", x: 45.8, y: 27.5 },
-  { id: "ae", name: "UAE",            x: 58.8, y: 41.5 },
-  { id: "in", name: "India",          x: 65.0, y: 44.0 },
-  { id: "my", name: "Malaysia",       x: 72.0, y: 52.0 },
-  { id: "sg", name: "Singapore",      x: 72.4, y: 54.2 },
+  { id: "gb", name: "United Kingdom", x: 47.0, y: 24.0 },
+  { id: "ae", name: "UAE",            x: 62.0, y: 38.0 },
+  { id: "in", name: "India",          x: 70.0, y: 43.0 },
+  { id: "my", name: "Malaysia",       x: 77.5, y: 51.0 },
+  { id: "sg", name: "Singapore",      x: 78.0, y: 53.0 },
 ];
 
 export default function Footprint() {

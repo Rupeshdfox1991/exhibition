@@ -1,0 +1,52 @@
+{
+  "summary": "Iteration 7 retest of Global Presence world map after applying iteration-6 RCA fix. ALL acceptance criteria PASS. CSS change verified: .rl-worldmap-inner now has computed aspect-ratio '1920 / 975' and renders as 1040x528 (image fills 100% with no letterboxing). Footprint.jsx pins array matches exactly: gb(47,24), ae(62,38), in(70,43), my(77.5,51), sg(78,53). Measured image-relative positions equal the inline style values (container=image now). Visual inspection at 1920x1000 and 1440x900 confirms: UK pin on British Isles, UAE on Arabian peninsula, India on Indian subcontinent (user's #1 criterion met), Malaysia on Malay peninsula, Singapore at tip of Malay peninsula. Behavior: clicking worldmap-pin-in opens india-cities-expand; clicking worldmap-pin-ae does NOT toggle it (expand stays in its prior state); second click on worldmap-pin-in collapses the panel. No regressions observed.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "Footprint map", "issues": ["Malaysia and Singapore pins (77.5/51 and 78/53) are very close; Malaysia label may visually overlap/hide behind Singapore label at smaller viewports. Consider offsetting Singapore label below the dot (top:+14px) for visual separation. Cosmetic only, not blocking."]}
+    ]
+  },
+  "verification_details": {
+    "css_aspect_ratio_computed": "1920 / 975 (PASS)",
+    "container_dimensions_at_1920vw": "1040 x 528.125 (PASS - matches image native ratio)",
+    "container_dimensions_at_1440vw": "1040 x 528.125 (PASS - max-width capped; same layout)",
+    "image_letterbox_top": "0px (PASS - previously 256px)",
+    "pin_coordinates_inline_vs_measured": {
+      "gb": "style=left:47%/top:24% -> image-relative 47.00%/24.00% (PASS)",
+      "ae": "style=left:62%/top:38% -> image-relative 62.00%/38.00% (PASS)",
+      "in": "style=left:70%/top:43% -> image-relative 70.00%/43.00% (PASS)",
+      "my": "style=left:77.5%/top:51% -> image-relative 77.50%/51.00% (PASS)",
+      "sg": "style=left:78%/top:53% -> image-relative 78.00%/53.00% (PASS)"
+    },
+    "visual_country_accuracy_1920x1000": {
+      "gb": "On British Isles area (PASS)",
+      "ae": "On Arabian peninsula tip (PASS)",
+      "in": "On Indian subcontinent - USER #1 CRITERION MET (PASS)",
+      "my": "On Malay peninsula (PASS)",
+      "sg": "Tip of Malay peninsula just below Malaysia (PASS)"
+    },
+    "visual_country_accuracy_1440x900": "Same as 1920x1000 - PASS (container is max-width capped so positions identical)",
+    "india_pin_toggles_expand": "PASS - click opens, 2nd click closes",
+    "non_india_pins_do_not_toggle": "PASS - clicking AE pin does not change expand state",
+    "map_image_url_contains_dghkanxm": "PASS (natural size 1920x975 confirmed)"
+  },
+  "test_report_links": [
+    "/app/frontend/src/App.css (line 1336)",
+    "/app/frontend/src/components/sections/Footprint.jsx (lines 12-18)"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "[INFO] Fix is clean and localized: single CSS line (aspect-ratio) + 5 pin coord updates. Implementation matches iteration-6 recommendation verbatim.",
+    "[MINOR] Optional: offset Singapore label below its dot to prevent overlap with Malaysia label at smaller viewports."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "N/A (skipped per request)", "frontend": "100% (5/5 pins correctly placed, all behavior tests pass)"},
+  "test_credentials": "N/A",
+  "seed_data_creation": "",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Pin accuracy fix is verified complete. If any further adjustments are requested, pin coords are in /app/frontend/src/components/sections/Footprint.jsx and inner container aspect-ratio is in /app/frontend/src/App.css line 1336. Container is now 1040x528 with zero letterbox, so any % coord in the pins array maps 1:1 to the native 1920x975 image.",
+  "rca_of_the_issue": "No open issue — iteration-6 RCA fix (aspect-ratio 1920/975 + recalibrated pin coords) is fully applied and verified."
+}
