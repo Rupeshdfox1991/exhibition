@@ -1,0 +1,44 @@
+{
+  "summary": "Iteration 5 full backend + frontend verification. All 6 backend pytest cases pass. All 4 new frontend features verified: (1) new banner URL k4161fa8...(1).jpeg, (2) world map with 5 pulsing pins (in/ae/gb/sg/my), (3) venue/address/venue-box Google Maps links with URL-encoded venue+address, (4) redesigned Registration success screen with Namaste 🙏, first name, exhibition pass card (Hyderabad/Lemon Tree/Banjara Hills/visit date/timings/schedule), map link, warm regards + Team Rudralife signoff and WhatsApp CTA to wa.me/917208819922. Responsive hero verified at 1920x1000 (22%), 1180x820 landscape (22%, mala on left with sheen gradient), 820x1180 portrait (left center, stacked), 390x844 mobile (left center, stacked). Backend persistence confirmed: TEST_ITER5 Seeker persisted via UI flow and returned by GET /api/registrations with correct fields.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "Footprint world map", "issues": ["Singapore (x:77.5,y:63) and Malaysia (x:78.2,y:60.5) pin labels visually overlap on the desktop world map — the 'MALAYSIA' box sits on top of the 'SINGAPORE' box making both hard to read. Recommend offsetting label placement (e.g. one label above pin, other below) or placing Malaysia ~x:75,y:58 (Kuala Lumpur is actually NW of Singapore). Non-blocking, purely cosmetic."]}
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_rudralife_api.py",
+    "/app/test_reports/pytest/pytest_iter5.xml"
+  ],
+  "verification_details": {
+    "banner_url": "PASS — background-image contains 'k4161fa8' and '%281%29.jpeg' ((1).jpeg)",
+    "hero_desktop_1920x1080": "PASS — bg-position 22% 50%, mala visible with gradient sheen overlay",
+    "hero_tablet_landscape_1180x820": "PASS — bg-position 22% 50%, mala fully visible on left half, text overlay on right",
+    "hero_tablet_portrait_820x1180": "PASS — bg-position 0% 50% (left center), stacked layout, h=613.6px, mala + full pendant visible",
+    "hero_mobile_390x844": "PASS — bg-position 0% 50%, h=337.6px, stacked, mala visible",
+    "world_map": "PASS — [data-testid='world-map'] rendered; all 5 pins worldmap-pin-{in,ae,gb,sg,my} visible on desktop and mobile",
+    "india_expand_coexists_with_map": "PASS — clicking country-in shows india-cities-expand, world-map remains visible below",
+    "exhibition_google_maps_links_hyderabad": "PASS — venue-link-hyderabad, address-link-hyderabad, venue-box-link-hyderabad all point to https://www.google.com/maps/search/?api=1&query=Lemon%20Tree%20Hotel%2C%20Banjara%20Hills%2C%20Hyderabad%2C%20Telangana",
+    "registration_e2e": "PASS — city-card-hyderabad → register-now-hyderabad → 3-step form (TEST_ITER5 Seeker / test_iter5@example.com / 9876543210 / Mumbai / auto-selected 16 April 2026) → submit → success screen rendered",
+    "success_screen_content": "PASS — contains 'Namaste 🙏', 'TEST_ITER5' first name, 'Warm regards', 'Team Rudralife'. success-details card has 'Rudralife · Hyderabad', '16 April 2026', timings '10:00 AM to 8:00 PM (Sunday Open)', full schedule '16th to 20th April 2026', venue 'Lemon Tree Hotel', address 'Banjara Hills, Hyderabad, Telangana'",
+    "success_map_link": "PASS — href = https://www.google.com/maps/search/?api=1&query=Lemon%20Tree%20Hotel%2C%20Banjara%20Hills%2C%20Hyderabad%2C%20Telangana",
+    "success_whatsapp_cta": "PASS — href = https://wa.me/917208819922?text=Namaste%20%F0%9F%99%8F%20I%20have%20just%20registered%20for%20the%20Rudralife%20Hyderabad%20exhibition%20on%2016%20April%202026.%20My%20name%20is%20TEST_ITER5%20Seeker.",
+    "backend_persistence": "PASS — GET /api/registrations returns TEST_ITER5 entry with id=d3d3ff97-..., full_name/email/phone/exhibition_id=hyderabad/visit_date='16 April 2026'/message='Test iter5' matching UI submission",
+    "pytest_backend": "6/6 passed: TestRoot.test_root_message, TestRegistration.test_create_valid_registration, test_invalid_email_returns_422, test_missing_required_field_returns_422, test_optional_message_defaults, test_list_registrations_most_recent_first"
+  },
+  "critical_code_review_comments": [
+    "[MINOR/COSMETIC] Footprint.jsx lines 135-136: Singapore (x:77.5,y:63) and Malaysia (x:78.2,y:60.5) are too close and their absolute-positioned labels overlap visually. Also geographically Malaysia (KL) should be slightly NW of Singapore, not east. Adjust to e.g. MY {x:76.5,y:58.5} and offset labels vertically.",
+    "[MINOR] Pre-existing React hydration warning from iter4 still present: <span> inside <option> due to framework's dynamic source annotation (select-exhibition). Non-blocking.",
+    "[MINOR/SECURITY] POST /api/register still has no rate-limiting / captcha (carried from iter1-4). Abuse risk in production.",
+    "[INFO] Hero.jsx BANNER_URL is inline-constant — fine, but for CDN cache-busting, consider hosting via CSS or env var."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "100% (6/6 pytest)", "frontend": "100% (all 9 acceptance criteria)"},
+  "test_credentials": "N/A (no auth in app)",
+  "seed_data_creation": "One TEST_ITER5 Seeker registration (test_iter5@example.com, Hyderabad, 16 April 2026) persisted via UI flow",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Iter5 feature set verified end-to-end. Only outstanding cosmetic item: Singapore/Malaysia pin label overlap on the world map (Footprint.jsx lines 135-136). Banner URL, Maps links, success-screen WhatsApp CTA, and all testids (worldmap-pin-*, venue-link-*, address-link-*, venue-box-link-*, success-details, success-map-link, success-whatsapp) are in place and functional."
+}

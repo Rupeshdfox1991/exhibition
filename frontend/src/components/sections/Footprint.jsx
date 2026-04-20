@@ -115,6 +115,40 @@ export default function Footprint() {
           </div>
         )}
 
+        {/* World map with 5 presence pins */}
+        <div className="rl-worldmap-wrap rl-reveal" data-testid="world-map">
+          <div className="rl-worldmap-caption">
+            <span className="rl-tag" style={{ color: "var(--rl-gold)" }}>Five Countries · One Tradition</span>
+          </div>
+          <div className="rl-worldmap-inner">
+            <img
+              src="https://customer-assets.emergentagent.com/job_sacred-rudraksha-hub/artifacts/igwpit0x_image.png"
+              alt="World map of Rudralife presence"
+              className="rl-worldmap-img"
+              loading="lazy"
+            />
+            {/* Pins — positions are % of map width/height */}
+            {[
+              { id: "in", name: "India",     x: 71.5, y: 51 },
+              { id: "ae", name: "UAE",       x: 64,   y: 49 },
+              { id: "gb", name: "UK",        x: 49,   y: 33 },
+              { id: "sg", name: "Singapore", x: 77.5, y: 63 },
+              { id: "my", name: "Malaysia", x: 78.2, y: 60.5 },
+            ].map((p) => (
+              <span
+                key={p.id}
+                className="rl-worldmap-pin"
+                style={{ left: `${p.x}%`, top: `${p.y}%` }}
+                data-testid={`worldmap-pin-${p.id}`}
+              >
+                <span className="rl-worldmap-pulse" />
+                <span className="rl-worldmap-dot" />
+                <span className="rl-worldmap-label">{p.name}</span>
+              </span>
+            ))}
+          </div>
+        </div>
+
         <div className="rl-map-legend" style={{ marginTop: 36 }}>
           <div className="item"><span className="sw" style={{ background: "var(--rl-red)" }} /> Live Now</div>
           <div className="item"><span className="sw" style={{ background: "var(--rl-gold)" }} /> Upcoming</div>

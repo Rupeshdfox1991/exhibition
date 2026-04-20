@@ -125,18 +125,40 @@ export default function Exhibitions({ selectedCityId, onCityClick, onRegister })
                 </div>
                 <div className="rl-info-block">
                   <div className="lbl">📍 Venue</div>
-                  <div className="val">{selected.venue}</div>
+                  <a
+                    className="val rl-maps-link"
+                    href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(selected.venue + ", " + selected.address)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    data-testid={`venue-link-${selected.id}`}
+                  >
+                    {selected.venue} <span className="rl-maps-ext">↗</span>
+                  </a>
                 </div>
                 <div className="rl-info-block">
                   <div className="lbl">🗺 Address</div>
-                  <div className="val">{selected.address}</div>
+                  <a
+                    className="val rl-maps-link"
+                    href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(selected.venue + ", " + selected.address)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    data-testid={`address-link-${selected.id}`}
+                  >
+                    {selected.address} <span className="rl-maps-ext">↗</span>
+                  </a>
                 </div>
               </div>
-              <div className="rl-venue-box">
-                <div className="lbl">Sacred Sanctum</div>
+              <a
+                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(selected.venue + ", " + selected.address)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="rl-venue-box rl-venue-box-link"
+                data-testid={`venue-box-link-${selected.id}`}
+              >
+                <div className="lbl">Sacred Sanctum · Open in Google Maps ↗</div>
                 <div className="val">{selected.venue}</div>
                 <div className="addr">{selected.address}</div>
-              </div>
+              </a>
               <button
                 className="rl-btn rl-btn-primary"
                 data-testid={`register-now-${selected.id}`}

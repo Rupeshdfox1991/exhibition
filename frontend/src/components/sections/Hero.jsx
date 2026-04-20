@@ -1,5 +1,5 @@
 const BANNER_URL =
-  "https://customer-assets.emergentagent.com/job_sacred-rudraksha-hub/artifacts/oz0e8a9l_1920%20x%20720%20Siddha%20Mala%20website%20Banner%2002%20copy.jpg.jpeg";
+  "https://customer-assets.emergentagent.com/job_sacred-rudraksha-hub/artifacts/k4161fa8_1920%20x%20720%20Siddha%20Mala%20website%20Banner%2002%20copy.jpg%20%281%29.jpeg";
 
 // Small rudraksha bead SVG used beside CTAs
 const BeadIcon = ({ size = 16 }) => (

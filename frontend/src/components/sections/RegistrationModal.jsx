@@ -103,10 +103,80 @@ export default function RegistrationModal({ exhibition, onClose }) {
         {success ? (
           <div className="rl-success" data-testid="registration-success">
             <div className="tick">✓</div>
-            <h3>Registration Confirmed</h3>
-            <p>Thank you, {form.full_name.split(" ")[0] || "seeker"}. Our team will contact you shortly with a confirmed consultation slot at <strong>{currentExhibition?.name}</strong>.</p>
-            <div style={{ marginTop: 28 }}>
-              <button className="rl-btn rl-btn-dark" data-testid="modal-success-close" onClick={onClose}>Close</button>
+            <h3>Registration Confirmed!</h3>
+            <div className="rl-success-namaste">Namaste <span className="rl-namaste-emoji">🙏</span></div>
+            <p className="rl-success-msg">
+              Thank you, <strong>{form.full_name.split(" ")[0] || "seeker"}</strong>, for registering for our exhibition.
+              We are delighted to have you with us.
+            </p>
+            <p className="rl-success-msg">
+              Your reserved consultation slot is noted below. Our team will reach out to you
+              shortly with a confirmation on WhatsApp & email.
+            </p>
+
+            {currentExhibition && (
+              <div className="rl-success-card" data-testid="success-details">
+                <div className="rl-success-card-head">
+                  <span className="rl-tag" style={{ color: "var(--rl-gold)" }}>Your Exhibition Pass</span>
+                  <span className="rl-success-city">{currentExhibition.name}</span>
+                </div>
+                <div className="rl-success-grid">
+                  <div>
+                    <div className="k">Exhibition</div>
+                    <div className="v">Rudralife · {currentExhibition.name}</div>
+                  </div>
+                  <div>
+                    <div className="k">Visit Date</div>
+                    <div className="v">{form.visit_date}</div>
+                  </div>
+                  <div>
+                    <div className="k">Timings</div>
+                    <div className="v">{currentExhibition.timings || "10:00 AM – 8:00 PM"}</div>
+                  </div>
+                  <div>
+                    <div className="k">Full Schedule</div>
+                    <div className="v">{currentExhibition.dates}</div>
+                  </div>
+                  <div className="rl-success-grid-full">
+                    <div className="k">Venue · Hotel</div>
+                    <div className="v">{currentExhibition.venue}</div>
+                  </div>
+                  <div className="rl-success-grid-full">
+                    <div className="k">Address</div>
+                    <a
+                      className="v rl-maps-link"
+                      href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent((currentExhibition.venue || "") + ", " + (currentExhibition.address || ""))}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      data-testid="success-map-link"
+                    >
+                      {currentExhibition.address} <span className="rl-maps-ext">↗ Open in Maps</span>
+                    </a>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <p className="rl-success-farewell">
+              If you have any questions, feel free to reach out to us anytime.<br />
+              We look forward to seeing you at the exhibition.
+            </p>
+            <div className="rl-success-regards">
+              Warm regards,<br />
+              <em>Team Rudralife</em>
+            </div>
+
+            <div style={{ marginTop: 28, display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
+              <a
+                href={`https://wa.me/917208819922?text=${encodeURIComponent(`Namaste 🙏 I have just registered for the Rudralife ${currentExhibition?.name || ""} exhibition on ${form.visit_date}. My name is ${form.full_name}.`)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="rl-btn rl-btn-primary"
+                data-testid="success-whatsapp"
+              >
+                WhatsApp Us ↗
+              </a>
+              <button className="rl-btn-text" data-testid="modal-success-close" onClick={onClose}>Close</button>
             </div>
           </div>
         ) : (
