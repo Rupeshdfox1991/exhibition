@@ -65,7 +65,7 @@ export default function Exhibitions({ selectedCityId, onCityClick, onRegister })
       <div className="rl-container">
         <div className="rl-exh-head rl-reveal">
           <span className="rl-tag">Current Exhibitions</span>
-          <h2 className="rl-heading">Where <span className="gold">Seekers</span> Meet the Sacred</h2>
+          <h2 className="rl-heading">Live <span className="gold">Exhibitions</span> Near You</h2>
           <p className="rl-subtitle rl-subtitle-dark" style={{ margin: "0 auto" }}>
             Sixteen Indian cities. Four international destinations. Every exhibition hosted in
             curated five-star venues with our panel of Vedic experts on-site.

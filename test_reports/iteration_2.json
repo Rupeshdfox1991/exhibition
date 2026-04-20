@@ -1,0 +1,36 @@
+{
+  "summary": "Iteration 2 full-stack regression for Rudralife landing page restructure. Backend 6/6 pytest still passing (root, register happy/422 invalid-email/422 missing-field/optional message default, list registrations ordered). Frontend: all new/updated sections render correctly — split Hero (banner on LEFT with rudraksha visible, no blur, no 'Rudralife' overlay; all text on RIGHT with OM/Empower Yourself/CTAs/stats), 7 Experts with real rudralife.com photos + years badges (Dr. Tanay Seetha first, 25+ Years), Seekers Worldwide (17 celebrity cards × 2 rows duplicated for seamless auto-scroll = 34 elements, seeker-milind-soman & seeker-manoj-bajpayee verified), 4 Video Testimonials (all anchors to YouTube), Media Features (Bombay Times/Republic Bharat/Swastik Production all anchors to youtu.be), 18 media-logo cells (9×2 duplicated for scroll strip), Collection first product is 'siddha-mala' / 'Siddha Mala' / 'For Overall Growth and Success'. Images: 82/92 rudralife.com images loaded on viewport scroll; remaining 10 live in horizontally-scrolling collection carousel and all 5 unique URLs verified 200 OK via curl. End-to-end registration (Hero→Exhibitions→Hyderabad→Register Now→3 steps→success) completed and TEST_ITER2 User persisted via GET /api/registrations. No React runtime errors; no 'Testimonials is not defined' error.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {
+        "screen": "Global (dev-only)",
+        "issues": [
+          "One dev-console hydration warning: '<span> cannot be a child of <option>'. Root cause is the Emergent preview's dynamic-editing instrumentation injecting a <span> inside <option> in RegistrationModal exhibition <select>. Not present in production build and not caused by app code. Cosmetic in dev only."
+        ]
+      }
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_rudralife_api.py",
+    "/app/test_reports/pytest/pytest_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Seekers/media logos/collection images carry no explicit width/height attrs — can cause CLS on slow networks. Consider setting fixed height on images or container to stabilise layout.",
+    "All major images are hot-linked from rudralife.com. Today they return 200 with no CORS issue (verified via curl + browser), but Rudralife could change hotlink policy or rename files at any time with no warning. Recommend downloading and caching these 92 images locally (public/images/...) for reliability and faster first paint.",
+    "No lazy-loading boundary / error fallback on <img> — if a remote rudralife image 404s later the card shows a broken-image icon. Add onError fallback to a local placeholder.",
+    "server.py POST /api/register remains public with no rate limiting or captcha — carried over from iteration 1; still a production concern for spam.",
+    "RegistrationModal exhibition <select> renders dynamic name inside <option> — the Emergent dev instrumentation wraps it in a <span>, causing the hydration warning. Not fixable in app code (dev-tool only), flagging for awareness."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "100% (6/6)", "frontend": "100% on specified acceptance criteria"},
+  "test_credentials": "N/A - no auth in app",
+  "seed_data_creation": "One extra TEST_ITER2 User registration added to registrations collection via end-to-end UI flow (email: test_iter2@example.com, city: Hyderabad). Total now 11 registrations including 4 TEST_ prefixed from both iterations.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Iteration 2 verified all acceptance criteria. Key testids in use: hero-section, hero-banner-img (banner src is customer-assets.emergentagent.com URL), hero-om, hero-register-btn (scrolls to exhibitions — see iter1 behavior note), hero-know-more-btn, expert-card-0..6 (0 = Dr. Tanay Seetha), seekers-section, seeker-{slug} e.g. seeker-milind-soman/seeker-manoj-bajpayee/seeker-ms-dimple-kapadia (note Ms./Mr. in names → slugified with hyphen+lowercase), client-say-section, video-testi-1..4 (all <a target=_blank> to YouTube), media-section, media-bombay-times / media-republic-bharat / media-swastik-production (all <a> to youtu.be/*), media-logo-{1..9}-{0..17} (9 logos × 2 for seamless scroll = 18 cells). Collection testid pattern product-{id}-{i} with first id = siddha-mala. Registration flow testids unchanged from iter1.",
+  "rca_of_issue": "N/A — no bugs found. The iter1 reported 'Invalid DOM property stroke-linecap' warning was not reproduced this run (likely already silenced or not triggered). New dev-only warning is about <span> in <option> caused by preview instrumentation, not app code."
+}

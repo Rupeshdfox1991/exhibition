@@ -1,49 +1,43 @@
-import { testimonials } from "@/data/content";
+import { seekers } from "@/data/content";
 
-const initials = (n) => n.split(" ").slice(0, 2).map((w) => w[0]).join("").toUpperCase();
-
-function Card({ t }) {
+function Card({ s }) {
   return (
-    <div className="rl-testi-card" data-testid={`testi-${t.name.replace(/\s/g, "-").toLowerCase()}`}>
-      <div className="rl-testi-stars">★ ★ ★ ★ ★</div>
-      <p className="rl-testi-text">&ldquo;{t.text}&rdquo;</p>
-      <div className="rl-testi-foot">
-        <div className="rl-testi-avatar">{initials(t.name)}</div>
-        <div>
-          <div className="rl-testi-name">{t.name}</div>
-          <div className="rl-testi-city">{t.location}</div>
-        </div>
+    <div className="rl-seeker-card" data-testid={`seeker-${s.name.replace(/[^a-z0-9]/gi, "-").toLowerCase()}`}>
+      <div className="rl-seeker-photo">
+        <img src={s.img} alt={s.name} loading="lazy" />
+      </div>
+      <div className="rl-seeker-body">
+        <div className="rl-seeker-name">{s.name}</div>
+        <div className="rl-seeker-role">{s.role}</div>
       </div>
     </div>
   );
 }
 
-export default function Testimonials() {
-  const half = Math.ceil(testimonials.length / 2);
-  const row1 = [...testimonials.slice(0, half), ...testimonials.slice(0, half)];
-  const row2 = [...testimonials.slice(half), ...testimonials.slice(half)];
+export default function SeekersWorldwide() {
+  const half = Math.ceil(seekers.length / 2);
+  const row1 = [...seekers.slice(0, half), ...seekers.slice(0, half)];
+  const row2 = [...seekers.slice(half), ...seekers.slice(half)];
 
   return (
-    <section className="rl-testi" id="testimonials" data-testid="testimonials-section">
-      <div className="rl-container rl-testi-head rl-reveal">
-        <span className="rl-tag">Trusted Worldwide</span>
+    <section className="rl-seekers" id="seekers" data-testid="seekers-section">
+      <div className="rl-container rl-seekers-head rl-reveal">
+        <span className="rl-tag">Seekers Worldwide</span>
         <h2 className="rl-heading" style={{ color: "var(--rl-bg-deep)" }}>
-          Trusted by Seekers <span className="gold">Worldwide</span>
+          Trusted by <span className="gold">Seekers Worldwide</span>
         </h2>
         <p className="rl-subtitle rl-subtitle-dark" style={{ margin: "0 auto" }}>
           From spiritual practitioners to professionals and leaders, Rudralife serves a diverse global community.
         </p>
       </div>
-      <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
-        <div className="rl-scroll-track">
-          <div className="rl-testi-row">
-            {row1.map((t, i) => <Card key={"r1" + i} t={t} />)}
-          </div>
+      <div className="rl-scroll-track">
+        <div className="rl-seeker-row">
+          {row1.map((s, i) => <Card key={"s1" + i} s={s} />)}
         </div>
-        <div className="rl-scroll-track">
-          <div className="rl-testi-row reverse">
-            {row2.map((t, i) => <Card key={"r2" + i} t={t} />)}
-          </div>
+      </div>
+      <div className="rl-scroll-track" style={{ marginTop: 22 }}>
+        <div className="rl-seeker-row reverse">
+          {row2.map((s, i) => <Card key={"s2" + i} s={s} />)}
         </div>
       </div>
     </section>

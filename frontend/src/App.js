@@ -7,7 +7,9 @@ import RegistrationModal from "@/components/sections/RegistrationModal";
 import Footprint from "@/components/sections/Footprint";
 import Collection from "@/components/sections/Collection";
 import Experts from "@/components/sections/Experts";
-import Testimonials from "@/components/sections/Testimonials";
+import SeekersWorldwide from "@/components/sections/Testimonials";
+import VideoTestimonials from "@/components/sections/VideoTestimonials";
+import InMedia from "@/components/sections/InMedia";
 import Stats from "@/components/sections/Stats";
 import About from "@/components/sections/About";
 import FAQ from "@/components/sections/FAQ";
@@ -77,7 +79,9 @@ export default function App() {
       <Footprint />
       <Collection />
       <Experts />
-      <Testimonials />
+      <SeekersWorldwide />
+      <VideoTestimonials />
+      <InMedia />
       <Stats />
       <About />
       <FAQ />

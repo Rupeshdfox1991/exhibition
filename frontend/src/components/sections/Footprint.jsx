@@ -41,7 +41,7 @@ export default function Footprint() {
         <div style={{ textAlign: "center" }} className="rl-reveal">
           <span className="rl-tag">Our Footprint</span>
           <h2 className="rl-heading" style={{ color: "var(--rl-cream)" }}>
-            A Sacred Path <span className="gold">Across the World</span>
+            Our Global <span className="gold">Presence</span>
           </h2>
           <p className="rl-subtitle" style={{ margin: "0 auto" }}>
             From five-star venues in sixteen Indian cities to international sanctums

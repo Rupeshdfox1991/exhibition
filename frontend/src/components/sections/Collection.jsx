@@ -18,7 +18,9 @@ export default function Collection() {
         <div className="rl-scroll-inner">
           {row.map((p, i) => (
             <div className="rl-product" key={p.id + i} data-testid={`product-${p.id}-${i}`}>
-              <div className="rl-product-img" style={{ backgroundImage: `url(${p.img})` }} />
+              <div className="rl-product-img">
+                <img src={p.img} alt={p.name} loading="lazy" />
+              </div>
               <h4>{p.name}</h4>
               <p>{p.benefit}</p>
             </div>

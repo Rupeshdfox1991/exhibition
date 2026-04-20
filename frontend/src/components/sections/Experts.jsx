@@ -1,8 +1,6 @@
 import { useState } from "react";
 import { experts } from "@/data/content";
 
-const initials = (n) => n.split(" ").filter(Boolean).slice(0, 2).map((w) => w[0]).join("").toUpperCase();
-
 export default function Experts() {
   const [flipped, setFlipped] = useState(null);
   return (
@@ -14,9 +12,10 @@ export default function Experts() {
             Panel <span className="gold">Experts</span> of Rudralife
           </h2>
           <p className="rl-subtitle" style={{ margin: "0 auto" }}>
-            Meet the guiding minds behind Rudralife's mission — a panel of Vedic experts
-            bringing together ancient knowledge and deep compassion.
+            Meet the guiding minds behind Rudralife's mission — a panel of Vedic
+            experts bringing together ancient knowledge and deep compassion.
           </p>
+          <div className="rl-hint">Hover or tap to know more</div>
         </div>
         <div className="rl-expert-grid rl-reveal">
           {experts.map((e, i) => (
@@ -28,13 +27,21 @@ export default function Experts() {
             >
               <div className="rl-expert-inner">
                 <div className="rl-expert-face rl-expert-front">
-                  <div className="rl-expert-avatar">{initials(e.name)}</div>
-                  <h4>{e.name}</h4>
-                  <div className="role">{e.title}</div>
+                  <div className="rl-expert-photo">
+                    <img src={e.img} alt={e.name} loading="lazy" />
+                    <span className="rl-expert-years">{e.years}</span>
+                  </div>
+                  <div className="rl-expert-meta">
+                    <h4>{e.name}</h4>
+                    <div className="role">{e.title}</div>
+                  </div>
                 </div>
                 <div className="rl-expert-face rl-expert-back">
+                  <div className="rl-expert-years-back">{e.years}</div>
+                  <h4>{e.name}</h4>
                   <div className="role">{e.title}</div>
                   <p>{e.bio}</p>
+                  <div className="rl-om">ॐ</div>
                 </div>
               </div>
             </div>
