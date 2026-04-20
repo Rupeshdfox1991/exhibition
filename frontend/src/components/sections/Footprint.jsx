@@ -1,39 +1,50 @@
 import { useState } from "react";
+import { domesticCities } from "@/data/exhibitions";
 
-const MAP_URL = "https://customer-assets.emergentagent.com/job_b271b1af-1da5-4630-96e0-320d96eb6add/artifacts/iqr4bwmn_image.png";
-
-// Approximate positions on the world map (0–100% for x and y) for each exhibition city
-const dots = [
-  // Domestic (India) — cluster around x=70% y=48%
-  { id: "mumbai",         name: "Mumbai",         x: 69.0, y: 55.5, status: "soon" },
-  { id: "delhi",          name: "Delhi",          x: 70.5, y: 46.5, status: "soon" },
-  { id: "ahmedabad",      name: "Ahmedabad",      x: 68.2, y: 52.5, status: "soon" },
-  { id: "vadodara",       name: "Vadodara",       x: 68.4, y: 53.2, status: "soon" },
-  { id: "rajkot",         name: "Rajkot",         x: 67.3, y: 53.5, status: "soon" },
-  { id: "surat",          name: "Surat",          x: 68.6, y: 54.2, status: "soon" },
-  { id: "jamnagar",       name: "Jamnagar",       x: 66.8, y: 53.8, status: "soon" },
-  { id: "gandhinagar",    name: "Gandhinagar",    x: 68.1, y: 52.2, status: "soon" },
-  { id: "jaipur",         name: "Jaipur",         x: 69.5, y: 48.8, status: "soon" },
-  { id: "indore",         name: "Indore",         x: 70.0, y: 53.0, status: "soon" },
-  { id: "kolkata",        name: "Kolkata",        x: 74.0, y: 52.0, status: "soon" },
-  { id: "pune",           name: "Pune",           x: 69.5, y: 57.0, status: "soon" },
-  { id: "chennai",        name: "Chennai",        x: 71.5, y: 60.5, status: "soon" },
-  { id: "bengaluru",      name: "Bengaluru",      x: 70.8, y: 60.0, status: "active" },
-  { id: "hyderabad",      name: "Hyderabad",      x: 71.0, y: 57.5, status: "active" },
-  { id: "visakhapatnam",  name: "Visakhapatnam",  x: 73.0, y: 56.5, status: "active" },
-  // International
-  { id: "dubai",          name: "Dubai",          x: 60.5, y: 52.5, status: "soon" },
-  { id: "singapore",      name: "Singapore",      x: 78.0, y: 64.0, status: "soon" },
-  { id: "malaysia",       name: "Kuala Lumpur",   x: 78.5, y: 62.5, status: "soon" },
-  { id: "uk",             name: "London",         x: 47.2, y: 34.5, status: "soon" },
+const countries = [
+  {
+    code: "IN",
+    name: "India",
+    flag: "🇮🇳",
+    summary: "16 Cities · Flagship Exhibitions",
+    img: "https://images.unsplash.com/photo-1587474260584-136574528ed5?w=1600&q=80",
+    expandable: true,
+  },
+  {
+    code: "AE",
+    name: "United Arab Emirates",
+    flag: "🇦🇪",
+    summary: "Dubai · Sacred Consultations",
+    img: "https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=1600&q=80",
+  },
+  {
+    code: "GB",
+    name: "United Kingdom",
+    flag: "🇬🇧",
+    summary: "London · International Previews",
+    img: "https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?w=1600&q=80",
+  },
+  {
+    code: "SG",
+    name: "Singapore",
+    flag: "🇸🇬",
+    summary: "Marina Bay · Private Sessions",
+    img: "https://images.unsplash.com/photo-1525625293386-3f8f99389edd?w=1600&q=80",
+  },
+  {
+    code: "MY",
+    name: "Malaysia",
+    flag: "🇲🇾",
+    summary: "Kuala Lumpur · Seekers Meet",
+    img: "https://images.unsplash.com/photo-1596422846543-75c6fc197f07?w=1600&q=80",
+  },
 ];
 
-export default function Footprint() {
-  const [hover, setHover] = useState(null);
+const LOGO_MARK =
+  "https://customer-assets.emergentagent.com/job_b271b1af-1da5-4630-96e0-320d96eb6add/artifacts/pm9yuvf5_New%20Rudralife%20final%20logo%20with%20tagline%20%28White%29%20%281%29.png";
 
-  // Dashed connector lines from India (Mumbai) to international cities
-  const mumbai = dots.find((d) => d.id === "mumbai");
-  const intl = dots.filter((d) => ["dubai", "singapore", "malaysia", "uk"].includes(d.id));
+export default function Footprint() {
+  const [openIndia, setOpenIndia] = useState(false);
 
   return (
     <section className="rl-map-section" id="footprint" data-testid="footprint-section">
@@ -44,47 +55,68 @@ export default function Footprint() {
             Our Global <span className="gold">Presence</span>
           </h2>
           <p className="rl-subtitle" style={{ margin: "0 auto" }}>
-            From five-star venues in sixteen Indian cities to international sanctums
-            across four countries — every Rudralife exhibition is a pilgrimage point.
+            Hosted in five-star venues across India and at private sanctums worldwide —
+            Rudralife exhibitions arrive where seekers are.
           </p>
         </div>
 
-        <div className="rl-map-wrap rl-reveal">
-          <img src={MAP_URL} alt="World map" className="rl-map-img" />
-          <svg
-            viewBox="0 0 100 50"
-            preserveAspectRatio="none"
-            style={{ position: "absolute", inset: 0, width: "100%", height: "100%", pointerEvents: "none" }}
-          >
-            {intl.map((d) => (
-              <line
-                key={`line-${d.id}`}
-                x1={mumbai.x} y1={mumbai.y / 2}
-                x2={d.x} y2={d.y / 2}
-                stroke="#C9920A"
-                strokeWidth="0.15"
-                strokeDasharray="0.6 0.6"
-                opacity="0.6"
-              />
-            ))}
-          </svg>
-          {dots.map((d) => (
-            <button
-              key={d.id}
-              className={`rl-map-dot ${d.status}`}
-              style={{ left: `${d.x}%`, top: `${d.y}%` }}
-              onMouseEnter={() => setHover(d.id)}
-              onMouseLeave={() => setHover(null)}
-              data-testid={`map-dot-${d.id}`}
-              aria-label={d.name}
+        <div className="rl-country-grid rl-reveal">
+          {countries.map((c) => (
+            <div
+              key={c.code}
+              className={`rl-country-card ${c.expandable ? "expandable" : ""} ${openIndia && c.expandable ? "open" : ""}`}
+              data-testid={`country-${c.code.toLowerCase()}`}
+              onClick={() => c.expandable && setOpenIndia(!openIndia)}
+              role={c.expandable ? "button" : undefined}
+              tabIndex={c.expandable ? 0 : -1}
+              onKeyDown={(e) => { if (c.expandable && e.key === "Enter") setOpenIndia(!openIndia); }}
             >
-              <span className="label">{d.name}</span>
-            </button>
+              <div className="rl-country-img" style={{ backgroundImage: `url(${c.img})` }} />
+              <div className="rl-country-flag-row">
+                <span className="rl-country-flag">{c.flag}</span>
+                <div className="rl-rl-mark" title="Rudralife presence">
+                  <img src={LOGO_MARK} alt="Rudralife" />
+                </div>
+              </div>
+              <div className="rl-country-body">
+                <h3>{c.name}</h3>
+                <div className="rl-country-sum">{c.summary}</div>
+                {c.expandable && (
+                  <div className="rl-country-cta">
+                    {openIndia ? "Hide Cities ↑" : "Explore Cities ↓"}
+                  </div>
+                )}
+              </div>
+            </div>
           ))}
         </div>
 
-        <div className="rl-map-legend">
-          <div className="item"><span className="sw" style={{ background: "var(--rl-red)" }} /> Active Now</div>
+        {openIndia && (
+          <div className="rl-country-expand" data-testid="india-cities-expand">
+            <div className="rl-country-expand-head">
+              <span>🇮🇳 India · Domestic Exhibition Cities</span>
+              <span>{domesticCities.length} Cities</span>
+            </div>
+            <div className="rl-city-chip-grid">
+              {domesticCities.map((city) => (
+                <div
+                  key={city.id}
+                  className={`rl-city-chip ${city.status === "live" ? "live" : ""}`}
+                  data-testid={`chip-${city.id}`}
+                >
+                  <span className="rl-city-chip-dot" />
+                  <span className="rl-city-chip-name">{city.name}</span>
+                  {city.status === "live" && (
+                    <span className="rl-city-chip-badge">Live</span>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <div className="rl-map-legend" style={{ marginTop: 36 }}>
+          <div className="item"><span className="sw" style={{ background: "var(--rl-red)" }} /> Live Now</div>
           <div className="item"><span className="sw" style={{ background: "var(--rl-gold)" }} /> Upcoming</div>
           <div className="item"><span className="sw" style={{ background: "rgba(253,248,240,0.5)" }} /> Past Host Cities</div>
         </div>

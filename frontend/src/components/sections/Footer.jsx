@@ -27,20 +27,24 @@ export default function Footer({ onNav }) {
             </ul>
           </div>
           <div>
-            <h5>Contact</h5>
+            <h5>Visit Us</h5>
             <ul>
+              <li style={{ color: "var(--rl-gold-soft)", fontWeight: 600 }}>Mon — Sat · 10 AM to 6 PM</li>
               <li>Rudralife HQ</li>
-              <li>Mumbai, Maharashtra</li>
-              <li>India · 400 050</li>
-              <li><a href="mailto:info@rudralife.com">info@rudralife.com</a></li>
+              <li>305, Kailas Plaza, V. B. Lane</li>
+              <li>Near Bank of Baroda, Ghatkopar East</li>
+              <li>Mumbai — 400 077, Maharashtra, India</li>
+              <li style={{ marginTop: 8 }}><a href="tel:+912225103030">+91 22 2510 3030</a></li>
             </ul>
           </div>
           <div>
-            <h5>Visit Us</h5>
+            <h5>Contact</h5>
             <ul>
-              <li>Mon — Sat · 10 AM to 7 PM</li>
-              <li>Sunday by appointment</li>
-              <li>Private consultations on request</li>
+              <li><a href="mailto:info@rudralife.com">info@rudralife.com</a></li>
+              <li><a href="https://wa.me/917208819922" target="_blank" rel="noopener noreferrer">WhatsApp · +91 72088 19922</a></li>
+              <li style={{ marginTop: 10, color: "rgba(253,248,240,0.55)", fontSize: 12, lineHeight: 1.6 }}>
+                Private consultations available by appointment on Sundays.
+              </li>
             </ul>
           </div>
         </div>

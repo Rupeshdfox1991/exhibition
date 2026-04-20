@@ -1,0 +1,45 @@
+{
+  "summary": "Iteration 3 regression. Backend still 6/6 pytest pass (root + register happy/422 invalid-email/422 missing-field/optional message default/list ordered desc). Frontend: NEW full-bleed Hero with background-image div (contains oz0e8a9l banner URL), heading now 'Explore with Rudralife' (Empower Yourself removed), Register Now button contains inline SVG bead icon. Footprint section renders exactly 5 country cards (country-in/ae/gb/sg/my) each with flag emoji + Rudralife logo marker; India card expands panel india-cities-expand showing all 16 domestic city chips with Live badge on hyderabad/visakhapatnam/bengaluru; second click collapses; AE/GB/SG/MY do NOT expand — all verified. Footer Visit Us shows 'Mon — Sat · 10 AM to 6 PM', '305, Kailas Plaza', 'Ghatkopar East', 'Mumbai — 400 077', phone +91 22 2510 3030 — all verified. End-to-end registration flow completed on desktop (nav-register → 3 steps → success, TEST_ITER3 persisted at hyderabad). No console/runtime errors. ONE RESPONSIVE DESIGN BUG: at tablet portrait 820x1180 the Siddha Mala is completely cropped out of the banner (background-size:cover + position:center with 1920x720 source image against a taller 820x1180 container crops ~1160px off the sides, hiding the mala on the left). Mobile (≤760px) stacks correctly with background-position:left and mala is fully visible; desktop ≥1100px shows mala clearly on the left. The problem is confined to the 761px–1100px portrait range.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [
+      {
+        "component": "Hero (tablet portrait 761-1100px)",
+        "issue": "Siddha Mala is fully cropped out of the hero banner on tablet portrait viewports (e.g. iPad 820x1180). Only swirling smoke/fire area is visible; beads on the left of the source image are clipped. Violates acceptance criterion 'Siddha Mala must remain FULLY VISIBLE on all devices'.",
+        "selector": ".rl-hero-bg",
+        "priority": "HIGH"
+      }
+    ],
+    "integration_issues": [],
+    "design_issues": [
+      {
+        "screen": "Tablet (820x1180) Hero",
+        "issues": [
+          "Mala cropped out of view — recommend extending mobile-style stacked layout up to max-width: 1100px, or use background-position:left center with background-size:auto 100% on portrait tablets so the mala stays anchored on the left edge."
+        ]
+      }
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_rudralife_api.py",
+    "/app/test_reports/pytest/pytest_results.xml"
+  ],
+  "action_items": [
+    "Fix Hero responsive CSS so Siddha Mala is visible on tablet portrait (761-1100px). Option A: apply the @media (max-width: 760px) stacking rules up to 1100px (rename breakpoint). Option B: on 761-1100px change .rl-hero-bg to background-position: left center and either background-size:auto 100% or a fixed banner height so the mala on the left edge remains visible. Then re-verify at 768x1024 and 820x1180."
+  ],
+  "critical_code_review_comments": [
+    "Hero CSS tablet breakpoint gap: desktop-style overlay layout runs from 761px to 1100px but at portrait aspect the 1920x720 banner gets its sides cropped and the key visual element (mala) is lost. The full-bleed requirement and 'mala always visible' requirement conflict at tablet portrait unless the layout stacks or the background-position shifts to left.",
+    "Footprint country cards use Unsplash photos for flag backgrounds and an external Rudralife logo (hot-linked). Same risk noted in iteration 2: cache these assets locally.",
+    "India card click toggles expand state via same element; keyboard Enter handled but Space key not handled. Minor a11y gap.",
+    "RegistrationModal step 2 phone input exists only after step 1 is submitted (testid input-phone not present on step 1). Previous testing agents should note the 3-step sequence: step1=fullname/email, step2=phone/city/country, step3=exhibition/date/message.",
+    "Rate-limiting / captcha still absent on POST /api/register (carried from iter1/2)."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "100% (6/6)", "frontend": "92% — all acceptance criteria pass except tablet-portrait mala visibility"},
+  "test_credentials": "N/A (no auth)",
+  "seed_data_creation": "1 new TEST_ITER3 User registration (email test_iter3@example.com, exhibition hyderabad) persisted via end-to-end UI flow.",
+  "retest_needed": true,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Iteration 3 verified: banner div is background-image (not <img>), URL contains oz0e8a9l, title is 'Explore with Rudralife', Register Now has inline <svg> bead. Footprint testids: country-in/ae/gb/sg/my, india-cities-expand, chip-{cityId} for all 16 domestic cities. RegistrationModal flow: nav-register-btn → step1 input-fullname+input-email → modal-next-btn → step2 input-phone+input-city+select-dialcode+select-country → modal-next-btn → step3 select-exhibition+select-visit-date+input-message → modal-submit-btn → registration-success. Footer contains Mumbai HQ address verbatim. ONLY remaining issue: tablet portrait (820x1180) crops the mala.",
+  "rca_of_issue": "Root cause: /app/frontend/src/App.css .rl-hero-bg uses background-size:cover + background-position:center. The banner image aspect ratio is 1920x720 (~2.67:1 landscape) while iPad portrait is 820x1180 (~0.69:1 portrait). With cover, height is scaled to 1180 → width becomes 1180*(1920/720) ≈ 3146px. With center position, ~1163px is cropped from each side, removing the mala which sits on the left ~0-30% of the source image. Mobile rule @media (max-width:760px) already solves this by stacking, but the range 761-1100px (iPads, small tablets) falls back to the desktop overlay and hides the mala. Fix: either raise the stacking breakpoint to 1100px, or at 761-1100px set background-position:left center and consider background-size:auto 100% plus a defined hero height."
+}
