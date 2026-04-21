@@ -1,0 +1,72 @@
+{
+  "summary": "Iteration 8 verification of 4 user-reported fixes. ALL acceptance criteria PASS. (1) Exhibitions 16 domestic city cards render immediately on initial page load with NO tab click required — confirmed 16 [data-testid^=city-card-*] in DOM on first paint; 11 cards contain <img loading=lazy decoding=async> (remaining 5 use the rl-city-fallback because their seeded image URLs fail/404 — cosmetic/data issue, unrelated to this iteration's fix). (2) International tab still shows exactly 4 city cards. (3) index.html preconnect hints present for rudralife.com, images.unsplash.com, customer-assets.emergentagent.com; preload as=image with fetchpriority=high for hero banner — all confirmed. (4) India map pin inline style now left:68.5%/top:40%; visual inspection at 1920x1000 confirms pin sits on mainland Indian subcontinent (NOT on Sri Lanka / NOT in Arabian Sea). Global Presence subtitle updated: no longer contains 'Tap any pin to discover', now reads 'Five countries. One unbroken tradition. Hosted in five-star venues and private sanctums worldwide.' (5) Footer has 4 social icons — social-instagram, social-facebook, social-youtube, social-linkedin — LinkedIn href exactly 'https://www.linkedin.com/company/rudralife', all target=_blank and rel=noopener noreferrer. (6) Mobile hero at 390x844: .rl-hero-bg is position:absolute with inset 0/0/0/0, fills the wrap (390x844), .rl-hero-wrap has transparent background (no 'brown panel' below), text overlay visible at bottom with bottom vignette — confirmed visually. (7) Tablet portrait 820x1180 and landscape 1180x820: banner full-bleed, mala visible, text overlaid, no separate brown section. (8) Backend regression: /api/register and /api/registrations still green (6/6 pytest tests pass).",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "Exhibitions grid", "issues": ["5 of 16 domestic cards fell back to the letter placeholder on first load because their seeded image URLs (in /app/frontend/src/data/exhibitions.js) fail to resolve / return non-image. Not a regression from this iteration — the lazy-img refactor works exactly as designed; just the underlying image URLs are broken. Recommend auditing exhibitions.js image URLs."]},
+      {"screen": "Global Presence map", "issues": ["Malaysia (77%/49.5%) and Singapore (77.8%/51.5%) pin labels are in close proximity; at narrower viewports the Malaysia label can be visually eclipsed by Singapore label. Cosmetic only (flagged in iter 7 as well)."]}
+    ]
+  },
+  "verification_details": {
+    "exhibitions_initial_render_no_tab_click": "PASS — 16 city-card-* in DOM on first paint",
+    "exhibitions_lazy_img_count": "11/16 cards have <img loading=lazy decoding=async>; 5 use rl-city-fallback due to bad seeded image URLs (data issue, not fix issue)",
+    "international_tab_count": "PASS — 4 cards",
+    "index_html_preconnect": {
+      "rudralife.com": "PASS",
+      "images.unsplash.com": "PASS",
+      "customer-assets.emergentagent.com": "PASS"
+    },
+    "index_html_preload": "PASS — link rel=preload as=image fetchpriority=high for hero banner",
+    "india_pin_style": "style=\"left: 68.5%; top: 40%;\" — PASS (was 70/43, now on mainland India)",
+    "footprint_subtitle": "PASS — 'Five countries. One unbroken tradition. Hosted in five-star venues and private sanctums worldwide.' (old 'Tap any pin to discover' absent)",
+    "footer_socials": {
+      "social-instagram": "href=https://instagram.com/rudralife target=_blank",
+      "social-facebook": "href=https://facebook.com/rudralife target=_blank",
+      "social-youtube": "href=https://youtube.com/@rudralife target=_blank",
+      "social-linkedin": "href=https://www.linkedin.com/company/rudralife target=_blank (NEW — PASS)"
+    },
+    "mobile_hero_390x844": {
+      "rl-hero-wrap_backgroundImage": "none",
+      "rl-hero-wrap_backgroundColor": "rgba(0,0,0,0) — no brown panel",
+      "rl-hero-bg_position": "absolute",
+      "rl-hero-bg_inset": "top:0 left:0 right:0 bottom:0",
+      "rl-hero-bg_rect": "390x844 at top 0 — fills viewport",
+      "verdict": "PASS — banner full-bleed, text overlaid, NO separate brown section below"
+    },
+    "tablet_portrait_820x1180": "PASS — banner full-bleed, text overlaid at bottom, no brown panel",
+    "tablet_landscape_1180x820": "PASS — banner full-bleed, mala visible, text overlaid (right side looks warmer because banner image itself has warm right half; no separate rl-hero-wrap brown panel)",
+    "visual_map_1920x1000": {
+      "uk_pin": "On British Isles (PASS)",
+      "uae_pin": "On Arabian peninsula (PASS)",
+      "india_pin": "On Indian subcontinent mainland — NOT on Sri Lanka — USER #1 FIX VERIFIED (PASS)",
+      "malaysia_singapore": "On Malay peninsula (PASS, labels overlap cosmetically as before)"
+    },
+    "backend_pytest": "6/6 PASSED — /api/ root, POST /api/register (valid, invalid email, missing field, optional message defaults), GET /api/registrations ordered desc"
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_rudralife_api.py",
+    "/app/test_reports/pytest/pytest_iter8.xml"
+  ],
+  "action_items": [
+    "[COSMETIC / NEXT-UP] Audit /app/frontend/src/data/exhibitions.js — 5 domestic cards (the ones showing the gold letter placeholder) have broken/non-image URLs. Replace with working image URLs so all 16 thumbnails render.",
+    "[COSMETIC] Consider offsetting Singapore label vertically (top:+14px) so Malaysia label is not eclipsed (carried over from iter 7)."
+  ],
+  "critical_code_review_comments": [
+    "[GOOD] CityCard image refactor is clean — <img loading=lazy decoding=async> with onError fallback; good progressive-enhancement pattern.",
+    "[GOOD] index.html preconnect + preload with fetchpriority=high correctly targets only the hero banner; won't waste bandwidth on non-critical images.",
+    "[GOOD] Footprint.jsx pins array changes are minimal and localized (only India moved). No map calibration regressions expected.",
+    "[GOOD] Footer LinkedIn icon matches the styling/color of the other 3 (gold #E0B044 stroke, same 16x16 svg size).",
+    "[NIT] Footprint.jsx still renders 'India · Tap' / 'India · Hide' suffix on the India pin label even though the new subtitle removed the 'Tap any pin to discover' instruction. Minor UX inconsistency — consider either restoring a short 'tap for cities' affordance in the subtitle or dropping the ' · Tap' suffix for consistency. Non-blocking.",
+    "[NIT] PlaceholderImg component in Exhibitions.jsx is defined but no longer referenced after the refactor — dead code, safe to remove."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "100% (6/6)", "frontend": "100% on all 4 requested fixes; 2 pre-existing cosmetic items unrelated to this iteration"},
+  "test_credentials": "N/A",
+  "seed_data_creation": "",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "All 4 iteration-8 fixes are verified green across desktop (1920x1000), mobile (390x844), tablet portrait (820x1180), and tablet landscape (1180x820). If next iteration touches exhibitions.js image URLs, retest CityCard img count (expected 16/16). If next iteration touches Footprint.jsx pins, retest India pin at 68.5%/40%.",
+  "rca_of_the_issue": "N/A — no open issues. All 4 user-reported bugs (slow initial load / blank exhibitions until tab click / India pin on Sri Lanka / mobile two-color bands) are resolved by the applied fixes, and a 4th social (LinkedIn) is correctly added."
+}

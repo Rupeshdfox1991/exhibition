@@ -12,9 +12,9 @@ const MAP_URL =
 const pins = [
   { id: "gb", name: "United Kingdom", x: 47.0, y: 24.0 },
   { id: "ae", name: "UAE",            x: 62.0, y: 38.0 },
-  { id: "in", name: "India",          x: 70.0, y: 43.0 },
-  { id: "my", name: "Malaysia",       x: 77.5, y: 51.0 },
-  { id: "sg", name: "Singapore",      x: 78.0, y: 53.0 },
+  { id: "in", name: "India",          x: 68.5, y: 40.0 },
+  { id: "my", name: "Malaysia",       x: 77.0, y: 49.5 },
+  { id: "sg", name: "Singapore",      x: 77.8, y: 51.5 },
 ];
 
 export default function Footprint() {
@@ -29,8 +29,7 @@ export default function Footprint() {
             Our Global <span className="gold">Presence</span>
           </h2>
           <p className="rl-subtitle" style={{ margin: "0 auto" }}>
-            Hosted in five-star venues across India and at private sanctums worldwide —
-            Rudralife exhibitions arrive where seekers are. Tap any pin to discover.
+            Five countries. One unbroken tradition. Hosted in five-star venues and private sanctums worldwide.
           </p>
         </div>
 

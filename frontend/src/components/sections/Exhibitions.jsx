@@ -27,22 +27,23 @@ function CityCard({ city, onClick, active }) {
       ) : (
         <span className="rl-badge rl-badge-soon" data-testid={`badge-soon-${city.id}`}>Coming Soon</span>
       )}
-      {imgErr ? (
-        <PlaceholderImg name={city.name} />
-      ) : (
-        <>
-          <div
-            className="rl-city-img"
-            style={{ backgroundImage: `url(${city.image})` }}
-          />
+      <div className="rl-city-img-wrap">
+        {!imgErr && (
           <img
             src={city.image}
-            alt=""
+            alt={city.name}
+            className="rl-city-img-el"
+            loading="lazy"
+            decoding="async"
             onError={() => setImgErr(true)}
-            style={{ display: "none" }}
           />
-        </>
-      )}
+        )}
+        {imgErr && (
+          <div className="rl-city-fallback">
+            <span>{city.name?.[0] || "•"}</span>
+          </div>
+        )}
+      </div>
       <div className="rl-city-body">
         <h3 className="rl-city-name">{city.name}</h3>
         {city.status === "live" ? (
