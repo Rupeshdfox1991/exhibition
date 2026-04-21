@@ -27,10 +27,23 @@ function useReveal() {
           }
         });
       },
-      { threshold: 0.12 }
+      // Fire as soon as any part of the element enters the viewport —
+      // required for tall elements (e.g. 16-card city grid on mobile).
+      { threshold: 0, rootMargin: "0px 0px -5% 0px" }
     );
     els.forEach((el) => io.observe(el));
-    return () => io.disconnect();
+
+    // Safety-net: if IntersectionObserver hasn't fired for any reveal within 2s
+    // of the element existing in the DOM (rare mobile browser timing issue),
+    // force them visible so the grid is never blank.
+    const failsafe = setTimeout(() => {
+      document.querySelectorAll(".rl-reveal:not(.in)").forEach((el) => {
+        const r = el.getBoundingClientRect();
+        if (r.top < window.innerHeight + 200) el.classList.add("in");
+      });
+    }, 1200);
+
+    return () => { io.disconnect(); clearTimeout(failsafe); };
   }, []);
 }
 

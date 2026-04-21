@@ -1,0 +1,67 @@
+{
+  "summary": "Iteration 9 — CRITICAL mobile reveal bug verified FIXED. useReveal hook (App.js L18-48) now uses {threshold:0, rootMargin:'0px 0px -5% 0px'} + 1.2s failsafe. ALL acceptance criteria PASS on all viewports without any tab interaction.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "verification_details": {
+    "mobile_390x844_no_tab_click": {
+      "page_loaded": "PASS",
+      "default_active_tab": "tab-domestic (class 'rl-tab active')",
+      "city_card_count": "16/16 (data-testid^='city-card-')",
+      "rl_city_grid_has_in_class": true,
+      "rl_city_grid_computed_opacity": "1",
+      "first_card_opacity_sample": "hyderabad=1, visakhapatnam=1, bengaluru=1, chennai=1 — all width 342x428 rendered",
+      "verdict": "PASS — bug NOT reproducible. Domestic grid reveals immediately on first load without any user interaction. Screenshot saved as /app/test_reports/mobile_exhibitions_no_interaction.png shows cards rendering directly below tabs."
+    },
+    "mobile_390x844_full_page_scroll": {
+      "page_height": 25022,
+      "reveals_total": 17,
+      "reveals_with_in_class_after_scroll": 17,
+      "verdict": "PASS — every .rl-reveal element eventually acquires .in; no blank sections"
+    },
+    "tablet_820x1180_no_interaction": {
+      "city_card_count": 16,
+      "rl_city_grid_has_in_class": true,
+      "grid_opacity": "1",
+      "first_card_opacity": "1",
+      "verdict": "PASS"
+    },
+    "desktop_1920x1000_regression": {
+      "reveals_total": 17,
+      "reveals_in_after_scroll": 17,
+      "city_cards": 16,
+      "verdict": "PASS — no regression"
+    },
+    "registration_flow_e2e": {
+      "modal_opens": true,
+      "steps_completed": "3-step wizard (name/email → phone/city → submit)",
+      "api_status": 200,
+      "api_endpoint": "POST /api/register",
+      "response_id": "910abb19-b56f-4680-8b80-ef73b78458c1",
+      "success_ui": "[data-testid=registration-success] visible — 'Registration Confirmed!' with pass card (Hyderabad, Lemon Tree Hotel)",
+      "verdict": "PASS"
+    },
+    "backend_pytest": "6/6 PASSED (test_rudralife_api.py: root, POST /api/register x4, GET /api/registrations)"
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_rudralife_api.py",
+    "/app/test_reports/pytest/pytest_iter9.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "[GOOD] useReveal fix is minimal and correct — threshold:0 + rootMargin '0px 0px -5% 0px' fires as soon as the top of the element enters viewport (ideal for tall grids). The 1.2s setTimeout failsafe that force-adds .in to any :not(.in) whose top is within innerHeight+200px is a defensive belt-and-braces pattern — non-intrusive, no layout churn.",
+    "[NIT] The failsafe only runs once at t=1.2s. If a user is extremely slow to scroll on an older device where IntersectionObserver is throttled, elements far below viewport are still handled by the live observer — that's fine. But if a client later mounts .rl-reveal dynamically (lazy content), those will not be observed. Current app has no such case, so safe.",
+    "[NIT] Prior-iteration carryovers (non-blocking): (a) 5 exhibitions.js seeded image URLs still 404 → letter placeholder; (b) Singapore/Malaysia label overlap at narrow widths."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "100% (6/6)", "frontend": "100% — all 6 requested acceptance criteria pass"},
+  "test_credentials": "N/A (no auth)",
+  "seed_data_creation": "1 test registration created via API (TEST_User_1776760619) — does not affect seeded data",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Reveal fix is solid across mobile (390x844), tablet (820x1180), and desktop (1920x1000). 16 domestic cards render immediately without tab click. If a future iteration modifies useReveal, re-test by (a) loading mobile 390x844, (b) immediately evaluating document.querySelector('.rl-city-grid').classList.contains('in'), expecting true within 1.5s.",
+  "rca_of_the_issue": "ROOT CAUSE (user-reported): IntersectionObserver threshold:0.12 — for the 16-card grid (~7000px tall on mobile 390px width), 12% visible = 840px had to enter viewport before reveal fired, which only happens after significant scroll. Since .rl-city-grid starts with opacity:0 (via .rl-reveal default) and transitions to opacity:1 only on .in class, the grid stayed blank. Clicking a tab triggered a component re-render which must have side-effect-triggered the observer. FIX APPLIED by main agent: threshold:0 + negative rootMargin on bottom (-5%) so reveal fires on first pixel of intersection; plus 1.2s failsafe that sweeps any .rl-reveal:not(.in) within viewport+200px. VERIFICATION: grid.classList.contains('in')=true and opacity=1 on initial mobile load without any tab click."
+}
