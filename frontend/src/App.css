@@ -1588,3 +1588,18 @@
   .rl-worldmap-pulse { width: 22px; height: 22px; }
   .rl-worldmap-dot { width: 9px; height: 9px; }
 }
+
+/* Offset Singapore label below its dot to avoid overlap with Malaysia label just above */
+.rl-worldmap-pin[data-testid="worldmap-pin-sg"] .rl-worldmap-label {
+  top: auto;
+  bottom: -26px;
+}
+.rl-worldmap-pin[data-testid="worldmap-pin-sg"] .rl-worldmap-label::after {
+  top: -5px;
+  bottom: auto;
+  border-right: 1px solid var(--rl-gold);
+  border-bottom: none;
+  border-top: 1px solid var(--rl-gold);
+  border-left: none;
+  transform: translateX(-50%) rotate(-135deg);
+}
