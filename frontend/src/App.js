@@ -1,4 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, createContext, useContext } from "react";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import axios from "axios";
 import "@/App.css";
 import Navbar from "@/components/Navbar";
 import Hero from "@/components/sections/Hero";
@@ -14,6 +16,15 @@ import Stats from "@/components/sections/Stats";
 import About from "@/components/sections/About";
 import FAQ from "@/components/sections/FAQ";
 import Footer from "@/components/sections/Footer";
+import AdminLogin from "@/admin/AdminLogin";
+import AdminDashboard from "@/admin/AdminDashboard";
+import ProtectedRoute from "@/admin/ProtectedRoute";
+
+const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
+
+// Public exhibitions context — fetched once and shared by Exhibitions + RegistrationModal
+export const ExhibitionsContext = createContext({ exhibitions: [], loading: true });
+export const useExhibitions = () => useContext(ExhibitionsContext);
 
 function useReveal() {
   useEffect(() => {
@@ -27,32 +38,43 @@ function useReveal() {
           }
         });
       },
-      // Fire as soon as any part of the element enters the viewport —
-      // required for tall elements (e.g. 16-card city grid on mobile).
       { threshold: 0, rootMargin: "0px 0px -5% 0px" }
     );
     els.forEach((el) => io.observe(el));
-
-    // Safety-net: if IntersectionObserver hasn't fired for any reveal within 2s
-    // of the element existing in the DOM (rare mobile browser timing issue),
-    // force them visible so the grid is never blank.
     const failsafe = setTimeout(() => {
       document.querySelectorAll(".rl-reveal:not(.in)").forEach((el) => {
         const r = el.getBoundingClientRect();
         if (r.top < window.innerHeight + 200) el.classList.add("in");
       });
     }, 1200);
-
     return () => { io.disconnect(); clearTimeout(failsafe); };
   }, []);
 }
 
-export default function App() {
+function Landing() {
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedExhibition, setSelectedExhibition] = useState(null);
   const [selectedCityId, setSelectedCityId] = useState(null);
+  const [exhibitions, setExhibitions] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useReveal();
+
+  useEffect(() => {
+    let alive = true;
+    const fetchEx = async () => {
+      try {
+        const { data } = await axios.get(`${API}/exhibitions`);
+        if (alive) setExhibitions(Array.isArray(data) ? data : []);
+      } catch (e) {
+        if (alive) setExhibitions([]);
+      } finally { if (alive) setLoading(false); }
+    };
+    fetchEx();
+    // refresh occasionally so admin changes show within ~30s on the live site
+    const t = setInterval(fetchEx, 30000);
+    return () => { alive = false; clearInterval(t); };
+  }, []);
 
   const openRegistration = (exhibition) => {
     setSelectedExhibition(exhibition || null);
@@ -75,41 +97,55 @@ export default function App() {
   };
 
   return (
-    <div className="App">
-      <Navbar onRegister={() => openRegistration(null)} />
-      <Hero
-        onRegister={scrollToExhibitions}
-        onKnowMore={() => {
-          const el = document.getElementById("about");
-          if (el) el.scrollIntoView({ behavior: "smooth" });
-        }}
-      />
-      <Exhibitions
-        selectedCityId={selectedCityId}
-        onCityClick={handleCityClick}
-        onRegister={openRegistration}
-      />
-      <Footprint />
-      <Collection />
-      <Experts />
-      <SeekersWorldwide />
-      <VideoTestimonials />
-      <InMedia />
-      <Stats />
-      <About />
-      <FAQ />
-      <Footer
-        onNav={(id) => {
-          const el = document.getElementById(id);
-          if (el) el.scrollIntoView({ behavior: "smooth" });
-        }}
-      />
-      {modalOpen && (
-        <RegistrationModal
-          exhibition={selectedExhibition}
-          onClose={() => setModalOpen(false)}
+    <ExhibitionsContext.Provider value={{ exhibitions, loading }}>
+      <div className="App">
+        <Navbar onRegister={() => openRegistration(null)} />
+        <Hero
+          onRegister={scrollToExhibitions}
+          onKnowMore={() => {
+            const el = document.getElementById("about");
+            if (el) el.scrollIntoView({ behavior: "smooth" });
+          }}
         />
-      )}
-    </div>
+        <Exhibitions
+          selectedCityId={selectedCityId}
+          onCityClick={handleCityClick}
+          onRegister={openRegistration}
+        />
+        <Footprint />
+        <Collection />
+        <Experts />
+        <SeekersWorldwide />
+        <VideoTestimonials />
+        <InMedia />
+        <Stats />
+        <About />
+        <FAQ />
+        <Footer
+          onNav={(id) => {
+            const el = document.getElementById(id);
+            if (el) el.scrollIntoView({ behavior: "smooth" });
+          }}
+        />
+        {modalOpen && (
+          <RegistrationModal
+            exhibition={selectedExhibition}
+            onClose={() => setModalOpen(false)}
+          />
+        )}
+      </div>
+    </ExhibitionsContext.Provider>
+  );
+}
+
+export default function App() {
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/admin/login" element={<AdminLogin />} />
+        <Route path="/admin" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
+        <Route path="*" element={<Landing />} />
+      </Routes>
+    </BrowserRouter>
   );
 }

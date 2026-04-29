@@ -1,13 +1,30 @@
 import { useMemo, useState } from "react";
-import { domesticCities, internationalCities, allCities } from "@/data/exhibitions";
+import { useExhibitions } from "@/App";
 
-const PlaceholderImg = ({ name }) => (
-  <div className="rl-city-img" style={{ background: "linear-gradient(135deg, #2A1708 0%, #0D0702 100%)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-    <span style={{ fontFamily: "'Cormorant Garamond', serif", color: "rgba(201,146,10,0.35)", fontSize: 64 }}>
-      {name?.[0] || "•"}
-    </span>
-  </div>
-);
+// "2026-04-16" + "2026-04-20" → "16th to 20th April 2026"
+function ordinal(n) {
+  const s = ["th","st","nd","rd"], v = n % 100;
+  return n + (s[(v - 20) % 10] || s[v] || s[0]);
+}
+function formatRange(startISO, endISO) {
+  if (!startISO) return "";
+  const months = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+  const s = new Date(startISO + "T00:00:00");
+  const e = endISO ? new Date(endISO + "T00:00:00") : null;
+  const sd = s.getDate(), sm = s.getMonth(), sy = s.getFullYear();
+  if (!e) return `${ordinal(sd)} ${months[sm]} ${sy}`;
+  const ed = e.getDate(), em = e.getMonth(), ey = e.getFullYear();
+  if (sm === em && sy === ey) return `${ordinal(sd)} to ${ordinal(ed)} ${months[sm]} ${sy}`;
+  if (sy === ey) return `${ordinal(sd)} ${months[sm]} to ${ordinal(ed)} ${months[em]} ${sy}`;
+  return `${ordinal(sd)} ${months[sm]} ${sy} to ${ordinal(ed)} ${months[em]} ${ey}`;
+}
+export function adaptExhibition(ex) {
+  return {
+    ...ex,
+    dates: formatRange(ex.start_date, ex.end_date) || "Schedule TBA",
+    dateRange: ex.start_date && ex.end_date ? { start: ex.start_date, end: ex.end_date } : null,
+  };
+}
 
 function CityCard({ city, onClick, active }) {
   const [imgErr, setImgErr] = useState(false);
@@ -58,8 +75,12 @@ function CityCard({ city, onClick, active }) {
 
 export default function Exhibitions({ selectedCityId, onCityClick, onRegister }) {
   const [tab, setTab] = useState("domestic");
+  const { exhibitions } = useExhibitions();
+  const allCities = useMemo(() => exhibitions.map(adaptExhibition), [exhibitions]);
+  const domesticCities = useMemo(() => allCities.filter((c) => c.type === "domestic"), [allCities]);
+  const internationalCities = useMemo(() => allCities.filter((c) => c.type === "international"), [allCities]);
   const cities = tab === "domestic" ? domesticCities : internationalCities;
-  const selected = useMemo(() => allCities.find((c) => c.id === selectedCityId && c.status === "live"), [selectedCityId]);
+  const selected = useMemo(() => allCities.find((c) => c.id === selectedCityId && c.status === "live"), [selectedCityId, allCities]);
 
   return (
     <section className="rl-section rl-section-cream" id="exhibitions" data-testid="exhibitions-section">

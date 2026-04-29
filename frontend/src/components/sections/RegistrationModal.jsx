@@ -1,14 +1,33 @@
 import { useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import { countries } from "@/data/countries";
-import { allCities, getDateOptions } from "@/data/exhibitions";
+import { useExhibitions } from "@/App";
+import { adaptExhibition } from "@/components/sections/Exhibitions";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
-const liveExhibitions = allCities.filter((c) => c.status === "live");
+// Generate "16 April 2026 (Thursday)" style date options between start & end ISO dates
+function getDateOptions(dateRange) {
+  if (!dateRange) return [];
+  const dates = [];
+  const start = new Date(dateRange.start + "T00:00:00");
+  const end = new Date(dateRange.end + "T00:00:00");
+  const monthNames = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+  const dayNames = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+  for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+    const day = d.getDate(), mon = monthNames[d.getMonth()], yr = d.getFullYear(), wk = dayNames[d.getDay()];
+    dates.push({ value: `${day} ${mon} ${yr}`, label: `${day} ${mon} ${yr} (${wk})` });
+  }
+  return dates;
+}
+
+const liveExhibitions = (exhibitions) => exhibitions.filter((c) => c.status === "live");
 
 export default function RegistrationModal({ exhibition, onClose }) {
+  const { exhibitions: rawExhibitions } = useExhibitions();
+  const allCities = useMemo(() => rawExhibitions.map(adaptExhibition), [rawExhibitions]);
+  const liveList = useMemo(() => liveExhibitions(allCities), [allCities]);
   const [step, setStep] = useState(1);
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -20,14 +39,22 @@ export default function RegistrationModal({ exhibition, onClose }) {
     phone: "",
     city: "",
     country: "India",
-    exhibition_id: exhibition?.id || (liveExhibitions[0]?.id ?? ""),
+    exhibition_id: exhibition?.id || (liveList[0]?.id ?? ""),
     visit_date: "",
     message: "",
   });
 
+  // If live list loads after modal mounts, set the default exhibition id
+  useEffect(() => {
+    if (!form.exhibition_id && liveList.length > 0) {
+      setForm((f) => ({ ...f, exhibition_id: liveList[0].id }));
+    }
+    // eslint-disable-next-line
+  }, [liveList.length]);
+
   const currentExhibition = useMemo(
-    () => allCities.find((c) => c.id === form.exhibition_id) || exhibition || liveExhibitions[0],
-    [form.exhibition_id, exhibition]
+    () => allCities.find((c) => c.id === form.exhibition_id) || exhibition || liveList[0],
+    [form.exhibition_id, exhibition, allCities, liveList]
   );
   const dateOptions = useMemo(() => getDateOptions(currentExhibition?.dateRange), [currentExhibition]);
 
@@ -284,7 +311,7 @@ export default function RegistrationModal({ exhibition, onClose }) {
                       value={form.exhibition_id}
                       onChange={(e) => update("exhibition_id", e.target.value)}
                     >
-                      {liveExhibitions.map((c) => (
+                      {liveList.map((c) => (
                         <option key={c.id} value={c.id}>{c.name} — {c.dates}</option>
                       ))}
                     </select>

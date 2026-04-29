@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { domesticCities } from "@/data/exhibitions";
+import { useState, useMemo } from "react";
+import { useExhibitions } from "@/App";
 
 const MAP_URL =
   "https://customer-assets.emergentagent.com/job_sacred-rudraksha-hub/artifacts/dghkanxm_image.png";
@@ -19,6 +19,8 @@ const pins = [
 
 export default function Footprint() {
   const [openIndia, setOpenIndia] = useState(false);
+  const { exhibitions } = useExhibitions();
+  const domesticCities = useMemo(() => exhibitions.filter((e) => e.type === "domestic"), [exhibitions]);
 
   return (
     <section className="rl-map-section" id="footprint" data-testid="footprint-section">

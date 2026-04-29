@@ -74,26 +74,7 @@ class TestRegistration:
         data = r.json()
         assert data.get("message", "") == ""
 
-    def test_list_registrations_most_recent_first(self, api_client):
+    def test_public_list_registrations_removed(self, api_client):
+        # Public GET /api/registrations was intentionally removed (admin-only now).
         r = api_client.get(f"{BASE_URL}/api/registrations")
-        assert r.status_code == 200
-        data = r.json()
-        assert isinstance(data, list)
-        assert len(data) >= 1
-        # Verify our created registration is present
-        assert any(reg.get("full_name") == VALID_PAYLOAD["full_name"] for reg in data), \
-            "Newly created registration not found in list"
-        # Verify sorting desc by created_at if multiple items
-        if len(data) >= 2:
-            ts = []
-            for reg in data[:5]:
-                ca = reg.get("created_at")
-                try:
-                    ts.append(datetime.fromisoformat(ca.replace("Z", "+00:00")) if isinstance(ca, str) else ca)
-                except Exception:
-                    pass
-            for i in range(len(ts) - 1):
-                assert ts[i] >= ts[i + 1], "Registrations not sorted by created_at desc"
-        # Ensure no _id leaking
-        for reg in data[:5]:
-            assert "_id" not in reg
+        assert r.status_code in (404, 405)
