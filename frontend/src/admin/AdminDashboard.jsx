@@ -184,10 +184,16 @@ function ExhibitionsTab({ exhibitions, reload }) {
     return q ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(q)}` : "";
   }, [form.venue, form.address]);
 
-  const grouped = useMemo(() => ({
-    domestic: exhibitions.filter((e) => e.type === "domestic"),
-    international: exhibitions.filter((e) => e.type === "international"),
-  }), [exhibitions]);
+  const grouped = useMemo(() => {
+    const sortLiveFirst = (a, b) => {
+      if (a.status === b.status) return (a.order ?? 0) - (b.order ?? 0);
+      return a.status === "live" ? -1 : 1;
+    };
+    return {
+      domestic: exhibitions.filter((e) => e.type === "domestic").slice().sort(sortLiveFirst),
+      international: exhibitions.filter((e) => e.type === "international").slice().sort(sortLiveFirst),
+    };
+  }, [exhibitions]);
 
   return (
     <div data-testid="exhibitions-tab">

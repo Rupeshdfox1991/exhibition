@@ -143,7 +143,7 @@ async def root():
 @api_router.get("/exhibitions", response_model=List[Exhibition])
 async def list_exhibitions_public():
     """Public list used by the registration form & exhibitions section."""
-    docs = await db.exhibitions.find({}, {"_id": 0}).sort("order", 1).to_list(500)
+    docs = await db.exhibitions.find({}, {"_id": 0}).sort([("status", 1), ("order", 1)]).to_list(500)
     return docs
 
 
@@ -179,7 +179,7 @@ async def admin_me(admin=Depends(get_current_admin)):
 # ─────────────────────── Admin: Exhibitions CRUD ───────────────────────
 @admin_router.get("/exhibitions", response_model=List[Exhibition])
 async def list_exhibitions_admin(admin=Depends(get_current_admin)):
-    docs = await db.exhibitions.find({}, {"_id": 0}).sort("order", 1).to_list(500)
+    docs = await db.exhibitions.find({}, {"_id": 0}).sort([("status", 1), ("order", 1)]).to_list(500)
     return docs
 
 

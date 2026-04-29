@@ -77,8 +77,19 @@ export default function Exhibitions({ selectedCityId, onCityClick, onRegister })
   const [tab, setTab] = useState("domestic");
   const { exhibitions } = useExhibitions();
   const allCities = useMemo(() => exhibitions.map(adaptExhibition), [exhibitions]);
-  const domesticCities = useMemo(() => allCities.filter((c) => c.type === "domestic"), [allCities]);
-  const internationalCities = useMemo(() => allCities.filter((c) => c.type === "international"), [allCities]);
+  // Sort: Live Now on top, then Coming Soon. Within each group, preserve admin display order.
+  const sortLiveFirst = (a, b) => {
+    if (a.status === b.status) return (a.order ?? 0) - (b.order ?? 0);
+    return a.status === "live" ? -1 : 1;
+  };
+  const domesticCities = useMemo(
+    () => allCities.filter((c) => c.type === "domestic").sort(sortLiveFirst),
+    [allCities]
+  );
+  const internationalCities = useMemo(
+    () => allCities.filter((c) => c.type === "international").sort(sortLiveFirst),
+    [allCities]
+  );
   const cities = tab === "domestic" ? domesticCities : internationalCities;
   const selected = useMemo(() => allCities.find((c) => c.id === selectedCityId && c.status === "live"), [selectedCityId, allCities]);
 
