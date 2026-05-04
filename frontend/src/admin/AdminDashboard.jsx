@@ -239,6 +239,7 @@ function NotifyCitiesTab() {
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({ name: "", type: "domestic", order: 50 });
   const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState("");
 
   const load = async () => {
     setLoading(true);
@@ -256,14 +257,15 @@ function NotifyCitiesTab() {
   }), [items]);
 
   const add = async () => {
-    if (!form.name.trim()) { alert("City name is required"); return; }
+    setErr("");
+    if (!form.name.trim()) { setErr("City name is required"); return; }
     setBusy(true);
     try {
       await api.createNotifyCity({ name: form.name.trim(), type: form.type, order: form.order });
       setForm({ name: "", type: form.type, order: 50 });
       await load();
     } catch (e) {
-      alert(e?.response?.data?.detail || e.message);
+      setErr(e?.response?.data?.detail || e.message || "Failed to add city");
     } finally { setBusy(false); }
   };
 
@@ -302,6 +304,9 @@ function NotifyCitiesTab() {
             {busy ? "Adding…" : "+ Add City"}
           </button>
         </div>
+        {err && (
+          <div className="rl-admin-form-error" data-testid="notify-city-error">{err}</div>
+        )}
       </div>
 
       {["domestic", "international"].map((t) => (

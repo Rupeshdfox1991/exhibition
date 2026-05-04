@@ -2247,6 +2247,17 @@
   border-color: var(--rl-red, #c0392b);
   color: #fff;
 }
+.rl-admin-form-error {
+  margin-top: 14px;
+  padding: 10px 14px;
+  background: rgba(192, 57, 43, 0.18);
+  border: 1px solid rgba(192, 57, 43, 0.55);
+  border-left: 3px solid #c0392b;
+  color: #f6c5c0;
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  line-height: 1.4;
+}
 
 @media (max-width: 600px) {
   .rl-admin-image-row { grid-template-columns: 1fr; }

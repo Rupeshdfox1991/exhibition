@@ -19,6 +19,21 @@ See `/app/memory/test_credentials.md`
 
 ## Implemented (cumulative, latest first)
 
+### Iteration 16 (Feb 2026) — Coming-Soon dropdown sync, image upload, carousel rewrite
+- **NotifyModal**: dropdown options now fetched from `GET /api/notify-cities` (admin-managed). Added **"Maybe Later"** button that closes the modal without submitting.
+- **Backend `notify_cities` collection** + endpoints:
+  - Public `GET /api/notify-cities`
+  - Admin `GET/POST /api/admin/notify-cities`, `DELETE /api/admin/notify-cities/{id}`
+  - Auto-seeded from existing exhibitions on first run.
+- **Image upload**: new `POST /api/admin/upload-image` endpoint (multipart, JPG/PNG/WebP, ≤4 MB) that saves to `/app/backend/uploads/` and serves via `/api/uploads/{filename}` (StaticFiles mount). Admin Exhibitions form now has an Upload button + thumbnail preview + helper text "Recommended 1200 × 800 px · 3:2 · max 4 MB".
+- **Admin Dashboard** new **"Notify Cities"** tab with chip-style add/delete grouped by Domestic/International. Inline error feedback on duplicates/validation failures.
+- **Experts label**: shrunk to 9px, repositioned to top-left with `max-width: calc(100% - 20px)` to prevent mobile overflow. Text changed to **"Tap to See"**.
+- **Collection carousel rewrite** (`Collection.jsx`):
+  - Continuous rAF autoplay with `pauseFor()` helper that resyncs from real `scrollLeft` after user interaction.
+  - Manual arrows now actually move the track (~320 px/click), no longer reverted by autoplay.
+  - Native touch-swipe (overflow-x: auto) + custom cursor-drag on desktop (mousedown → translate scrollLeft → mouseup → resume autoplay 2s later).
+  - `wheel` events also pause autoplay briefly so trackpad/horizontal-wheel works.
+
 ### Iteration 14 (Feb 2026) — UI/UX Enhancements
 - **Hero**: "Know More" button renamed to **"Get Notified When We Visit Your City"**; smooth-scrolls to `#exhibitions`.
 - **Live Exhibition Flow**: Clicking a Live city card now opens a new **EventDetailsModal** first (Dates, Timings, Venue with **Google Maps link**). A "Register Now" CTA inside the modal then opens `RegistrationModal`. No page scroll.
