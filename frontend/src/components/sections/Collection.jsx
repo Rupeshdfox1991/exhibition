@@ -12,16 +12,20 @@ export default function Collection() {
     const el = trackRef.current;
     if (!el) return;
     const SPEED = 0.45; // px per frame ≈ 27px/sec
+    let alive = true;
+    let pos = el.scrollLeft || 0;
     const tick = () => {
+      if (!alive) return;
       if (el.scrollWidth > el.clientWidth) {
         const half = el.scrollWidth / 2;
-        el.scrollLeft += SPEED;
-        if (el.scrollLeft >= half) el.scrollLeft -= half;
+        pos += SPEED;
+        if (pos >= half) pos -= half;
+        el.scrollLeft = pos; // browser floors read-back, but we keep a float accumulator
       }
       rafRef.current = requestAnimationFrame(tick);
     };
     rafRef.current = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(rafRef.current);
+    return () => { alive = false; cancelAnimationFrame(rafRef.current); };
   }, []);
 
   const scrollBy = (dir) => {
