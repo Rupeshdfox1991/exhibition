@@ -806,16 +806,19 @@
 }
 .rl-product:hover { transform: translateY(-4px); border-color: var(--rl-gold); box-shadow: 0 18px 40px -22px rgba(201, 146, 10, 0.4); }
 .rl-product-img {
-  height: 200px;
+  height: 220px;
   background: #fff;
   border: 1px solid rgba(201, 146, 10, 0.18);
   margin-bottom: 16px;
   display: flex; align-items: center; justify-content: center;
   overflow: hidden;
+  padding: 14px;
 }
 .rl-product-img img {
   max-width: 100%; max-height: 100%;
+  width: auto; height: auto;
   object-fit: contain;
+  display: block;
   transition: transform 600ms ease;
 }
 .rl-product:hover .rl-product-img img { transform: scale(1.05); }
@@ -953,7 +956,7 @@
   animation: rl-scroll 80s linear infinite;
 }
 .rl-seeker-row.reverse { animation: rl-scroll-rev 70s linear infinite; }
-.rl-seeker-row:hover { animation-play-state: paused; }
+.rl-seeker-row:hover { animation-play-state: running; }
 .rl-seeker-card {
   width: 220px; flex-shrink: 0;
   background: #fff;
@@ -1958,4 +1961,89 @@
   .rl-why-body p { font-size: 15px; }
   .rl-why-highlights { padding: 30px 24px; }
   .rl-why-highlights-title { margin-bottom: 22px; }
+}
+
+/* ═══ Live Card "Click to Register Now" + "Tap Now" + Coming Soon "Notify" pill ═══ */
+.rl-city-badge-row {
+  position: absolute; top: 14px; left: 14px; right: 14px; z-index: 3;
+  display: flex; gap: 8px; align-items: center; justify-content: space-between;
+  flex-wrap: wrap;
+}
+.rl-city-badge-row .rl-badge {
+  position: static;
+  margin: 0;
+}
+.rl-badge-cta {
+  background: var(--rl-gold);
+  color: var(--rl-bg-deep);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  padding: 6px 11px;
+  border: 1px solid var(--rl-gold);
+  cursor: pointer;
+  transition: all 220ms ease;
+  font-family: 'Inter', sans-serif;
+  white-space: nowrap;
+}
+.rl-badge-cta:hover {
+  background: var(--rl-cream);
+  color: var(--rl-bg-deep);
+  border-color: var(--rl-cream);
+}
+.rl-city-venue {
+  font-size: 11px;
+  color: rgba(253, 248, 240, 0.85);
+  margin-top: 4px;
+  font-style: italic;
+}
+.rl-city-action {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(201, 146, 10, 0.25);
+}
+.rl-city-tap {
+  display: inline-block;
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--rl-gold);
+  font-weight: 700;
+  font-family: 'Inter', sans-serif;
+}
+.rl-city-tap.soon { color: var(--rl-gold-soft); font-size: 10px; }
+
+/* ═══ Collection — nav arrows ═══ */
+.rl-collection-row {
+  position: relative;
+  display: flex; align-items: center;
+  gap: 0;
+}
+.rl-collection-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 5;
+  width: 48px; height: 48px;
+  border-radius: 50%;
+  border: 1px solid var(--rl-gold);
+  background: var(--rl-bg-deep);
+  color: var(--rl-gold);
+  font-size: 28px;
+  font-family: 'Cormorant Garamond', serif;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 220ms ease;
+  box-shadow: 0 6px 20px rgba(13, 7, 2, 0.25);
+  line-height: 1;
+}
+.rl-collection-arrow:hover { background: var(--rl-gold); color: var(--rl-bg-deep); transform: translateY(-50%) scale(1.06); }
+.rl-collection-arrow.left { left: 12px; }
+.rl-collection-arrow.right { right: 12px; }
+.rl-collection-row .rl-scroll-track { flex: 1; }
+@media (max-width: 640px) {
+  .rl-collection-arrow { width: 40px; height: 40px; font-size: 22px; }
+  .rl-collection-arrow.left { left: 6px; }
+  .rl-collection-arrow.right { right: 6px; }
 }

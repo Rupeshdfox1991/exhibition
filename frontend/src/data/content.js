@@ -108,8 +108,6 @@ export const faqs = [
 ];
 
 export const aboutParagraphs = [
-  "Rudralife, a Mumbai-based spiritual wellness organisation, has spent over two decades placing the sacred Rudraksha where it belongs — in the hands of those who seek it with sincerity. What began as a single boutique in Mumbai is today a trusted global institution, upheld by lab-certified authenticity, scholarly rigour and an unwavering respect for tradition.",
-  "At the domestic level, Rudralife conducts curated exhibitions in more than sixteen Indian cities, invariably hosted in the country's most gracious five-star venues. Each exhibition is an intimate meeting ground where seekers sit with our panel of Vedic astrologers, Sanskrit scholars and Rudraksha specialists, and receive recommendations tuned to their kundali, intention and life-stage.",
-  "On the international front, Rudralife has carried this living tradition to Dubai, Singapore, the United Kingdom and Malaysia, with private consultations extending well beyond. Our international patrons return year after year — not for novelty, but because the quiet authenticity of the Rudralife experience cannot be found elsewhere.",
-  "Overall, Rudralife's exhibitions are not retail events. They are sanctums — spaces of patient conversation, sacred commerce and real guidance. Twelve hundred exhibitions, five lakh seekers, and twenty-five unbroken years later, our only measure of success remains the same: the Rudraksha has found the right wearer.",
+  "Rudralife, founded in Mumbai in 2001, has spent over two decades placing the sacred Rudraksha where it belongs — in the hands of those who seek it with sincerity. From a single boutique to a trusted global institution, our work is upheld by lab-certified authenticity, scholarly rigour and an unbroken respect for tradition.",
+  "Across India, Rudralife hosts curated exhibitions in five-star venues; internationally, the same living tradition reaches Dubai, Singapore, the United Kingdom, Malaysia and beyond. Every exhibition is a sanctum — a space of patient conversation, real guidance and sacred commerce — where, in the end, the Rudraksha finds its right wearer.",
 ];

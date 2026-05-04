@@ -65,6 +65,31 @@ export const api = {
     a.click();
     window.URL.revokeObjectURL(url);
   },
+
+  // Notify-Me Leads (Coming Soon)
+  listNotifyInterest: async (filters = {}) => {
+    const params = new URLSearchParams();
+    Object.entries(filters).forEach(([k, v]) => { if (v) params.append(k, v); });
+    const { data } = await axios.get(`${API}/admin/notify-interest?${params.toString()}`, { headers: authHeaders() });
+    return data;
+  },
+  exportNotifyInterest: async (filters = {}) => {
+    const params = new URLSearchParams();
+    Object.entries(filters).forEach(([k, v]) => { if (v) params.append(k, v); });
+    const res = await axios.get(`${API}/admin/notify-interest/export?${params.toString()}`, {
+      headers: authHeaders(),
+      responseType: "blob",
+    });
+    const blob = new Blob([res.data], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    const cd = res.headers["content-disposition"] || "";
+    const m = cd.match(/filename="?([^"]+)"?/);
+    a.download = m ? m[1] : `rudralife_notifyme_${new Date().toISOString().slice(0,19).replace(/[-:]/g,"")}.xlsx`;
+    a.click();
+    window.URL.revokeObjectURL(url);
+  },
 };
 
 // Auto-logout on 401 across the app

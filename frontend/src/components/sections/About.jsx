@@ -26,9 +26,9 @@ export default function About() {
               <li><span className="k">Founded</span><span className="v">2001 · Mumbai</span></li>
               <li><span className="k">Seekers Served</span><span className="v">5,00,000+</span></li>
               <li><span className="k">Exhibitions</span><span className="v">1,200+</span></li>
-              <li><span className="k">Domestic Cities</span><span className="v">16</span></li>
-              <li><span className="k">International</span><span className="v">4 Countries</span></li>
-              <li><span className="k">Certification</span><span className="v">Lab-Verified</span></li>
+              <li><span className="k">Domestic Cities</span><span className="v">25+</span></li>
+              <li><span className="k">International Countries</span><span className="v">10+</span></li>
+              <li><span className="k">Certification</span><span className="v">ISO Lab Certified</span></li>
             </ul>
           </aside>
         </div>

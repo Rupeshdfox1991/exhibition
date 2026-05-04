@@ -95,6 +95,29 @@ class RegistrationCreate(BaseModel):
     message: Optional[str] = ""
 
 
+class NotifyInterestCreate(BaseModel):
+    full_name: str
+    email: EmailStr
+    dial_code: str = "+91"
+    phone: str
+    interested_city: str
+    exhibition_id: Optional[str] = ""
+    exhibition_type: Optional[str] = "domestic"  # "domestic" | "international"
+
+
+class NotifyInterest(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    full_name: str
+    email: str
+    dial_code: str = "+91"
+    phone: str
+    interested_city: str
+    exhibition_id: str = ""
+    exhibition_type: str = "domestic"
+    created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+
+
 class Registration(BaseModel):
     model_config = ConfigDict(extra="ignore")
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
@@ -118,7 +141,7 @@ class ExhibitionIn(BaseModel):
     status: str = "soon"   # "live" | "soon"
     start_date: Optional[str] = None  # ISO date "2026-04-16"
     end_date: Optional[str] = None
-    timings: str = "10:00 AM to 8:00 PM (Sunday Open)"
+    timings: str = "10:00 am to 8:00 pm (Sunday Open)"
     venue: str = ""
     address: str = ""
     order: int = 0
@@ -152,6 +175,13 @@ async def create_registration(payload: RegistrationCreate):
     reg = Registration(**payload.model_dump())
     await db.registrations.insert_one(reg.model_dump())
     return reg
+
+
+@api_router.post("/notify-interest", response_model=NotifyInterest)
+async def create_notify_interest(payload: NotifyInterestCreate):
+    rec = NotifyInterest(**payload.model_dump())
+    await db.notify_interest.insert_one(rec.model_dump())
+    return rec
 
 
 # ─────────────────────── Admin auth ───────────────────────
@@ -308,6 +338,74 @@ async def export_registrations(
     )
 
 
+def _build_notify_query(date_from: Optional[str], date_to: Optional[str], city: Optional[str], etype: Optional[str]) -> dict:
+    q: dict = {}
+    if city: q["interested_city"] = {"$regex": f"^{city}$", "$options": "i"}
+    if etype: q["exhibition_type"] = etype
+    if date_from or date_to:
+        rng = {}
+        if date_from: rng["$gte"] = date_from
+        if date_to:
+            rng["$lte"] = date_to + "T23:59:59.999999+00:00" if len(date_to) == 10 else date_to
+        q["created_at"] = rng
+    return q
+
+
+@admin_router.get("/notify-interest")
+async def list_notify_interest(
+    admin=Depends(get_current_admin),
+    date_from: Optional[str] = None,
+    date_to: Optional[str] = None,
+    city: Optional[str] = None,
+    exhibition_type: Optional[str] = None,
+    limit: int = Query(500, ge=1, le=5000),
+):
+    q = _build_notify_query(date_from, date_to, city, exhibition_type)
+    docs = await db.notify_interest.find(q, {"_id": 0}).sort("created_at", -1).to_list(limit)
+    total = await db.notify_interest.count_documents(q)
+    return {"total": total, "items": docs}
+
+
+@admin_router.get("/notify-interest/export")
+async def export_notify_interest(
+    admin=Depends(get_current_admin),
+    date_from: Optional[str] = None,
+    date_to: Optional[str] = None,
+    city: Optional[str] = None,
+    exhibition_type: Optional[str] = None,
+):
+    q = _build_notify_query(date_from, date_to, city, exhibition_type)
+    docs = await db.notify_interest.find(q, {"_id": 0}).sort("created_at", -1).to_list(10000)
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Notify Me Leads"
+    headers = ["Created At", "Full Name", "Email", "Dial Code", "Phone", "Interested City", "Exhibition Type"]
+    ws.append(headers)
+    for d in docs:
+        ws.append([
+            d.get("created_at", ""),
+            d.get("full_name", ""),
+            d.get("email", ""),
+            d.get("dial_code", ""),
+            d.get("phone", ""),
+            d.get("interested_city", ""),
+            d.get("exhibition_type", ""),
+        ])
+    from openpyxl.utils import get_column_letter
+    widths = [22, 22, 28, 10, 16, 22, 18]
+    for i, w in enumerate(widths, 1):
+        ws.column_dimensions[get_column_letter(i)].width = w
+    buf = BytesIO()
+    wb.save(buf)
+    buf.seek(0)
+    fname = f"rudralife_notifyme_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}.xlsx"
+    return StreamingResponse(
+        buf,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": f'attachment; filename="{fname}"'},
+    )
+
+
 api_router.include_router(admin_router)
 app.include_router(api_router)
 
@@ -330,17 +428,17 @@ SEED_EXHIBITIONS = [
     {"name": "Hyderabad",     "type": "domestic", "status": "live",
      "image": "https://images.unsplash.com/photo-1641722995655-0cd1e5e3f8bd?w=1200&q=80",
      "start_date": "2026-04-16", "end_date": "2026-04-20",
-     "timings": "10:00 AM to 8:00 PM (Sunday Open)",
+     "timings": "10:00 am to 8:00 pm (Sunday Open)",
      "venue": "Lemon Tree Hotel", "address": "Banjara Hills, Hyderabad, Telangana", "order": 1},
     {"name": "Visakhapatnam", "type": "domestic", "status": "live",
      "image": "https://images.unsplash.com/photo-1606298855672-3efb63017be8?w=1200&q=80",
      "start_date": "2026-04-24", "end_date": "2026-04-26",
-     "timings": "10:00 AM to 8:00 PM (Sunday Open)",
+     "timings": "10:00 am to 8:00 pm (Sunday Open)",
      "venue": "Dolphin Hotels", "address": "Dabagardens, Visakhapatnam, Andhra Pradesh", "order": 2},
     {"name": "Bengaluru",     "type": "domestic", "status": "live",
      "image": "https://images.unsplash.com/photo-1596176530529-78163a4f7af2?w=1200&q=80",
      "start_date": "2026-04-23", "end_date": "2026-04-27",
-     "timings": "10:00 AM to 8:00 PM (Sunday Open)",
+     "timings": "10:00 am to 8:00 pm (Sunday Open)",
      "venue": "Lemon Tree Premier", "address": "Ulsoor Lake, Bengaluru, Karnataka", "order": 3},
     {"name": "Chennai",     "type": "domestic", "status": "soon", "image": "https://images.unsplash.com/photo-1582510003544-4d00b7f74220?w=1200&q=80", "order": 4},
     {"name": "Delhi",       "type": "domestic", "status": "soon", "image": "https://images.unsplash.com/photo-1587474260584-136574528ed5?w=1200&q=80", "order": 5},
@@ -397,6 +495,16 @@ async def on_startup():
             doc = Exhibition(**s).model_dump()
             await db.exhibitions.insert_one(doc)
         logger.info(f"Seeded {len(SEED_EXHIBITIONS)} exhibitions")
+
+    # Index for notify_interest
+    await db.notify_interest.create_index("created_at")
+
+    # One-time migration: lowercase AM/PM in stored timings strings
+    cursor = db.exhibitions.find({"timings": {"$regex": "AM|PM"}}, {"_id": 0, "id": 1, "timings": 1})
+    async for doc in cursor:
+        new_t = (doc.get("timings") or "").replace(" AM", " am").replace(" PM", " pm").replace("AM ", "am ").replace("PM ", "pm ")
+        if new_t and new_t != doc.get("timings"):
+            await db.exhibitions.update_one({"id": doc["id"]}, {"$set": {"timings": new_t}})
 
 
 @app.on_event("shutdown")

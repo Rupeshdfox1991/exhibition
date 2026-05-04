@@ -6,6 +6,7 @@ import Navbar from "@/components/Navbar";
 import Hero from "@/components/sections/Hero";
 import Exhibitions from "@/components/sections/Exhibitions";
 import RegistrationModal from "@/components/sections/RegistrationModal";
+import NotifyModal from "@/components/sections/NotifyModal";
 import Footprint from "@/components/sections/Footprint";
 import WhyVisit from "@/components/sections/WhyVisit";
 import Collection from "@/components/sections/Collection";
@@ -54,8 +55,8 @@ function useReveal() {
 
 function Landing() {
   const [modalOpen, setModalOpen] = useState(false);
+  const [notifyCity, setNotifyCity] = useState(null);
   const [selectedExhibition, setSelectedExhibition] = useState(null);
-  const [selectedCityId, setSelectedCityId] = useState(null);
   const [exhibitions, setExhibitions] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -72,7 +73,6 @@ function Landing() {
       } finally { if (alive) setLoading(false); }
     };
     fetchEx();
-    // refresh occasionally so admin changes show within ~30s on the live site
     const t = setInterval(fetchEx, 30000);
     return () => { alive = false; clearInterval(t); };
   }, []);
@@ -84,11 +84,11 @@ function Landing() {
 
   const handleCityClick = (city) => {
     if (city.status === "live") {
-      setSelectedCityId(city.id);
-      setTimeout(() => {
-        const el = document.getElementById("exh-detail");
-        if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
-      }, 120);
+      // Open registration popup instantly — no scroll
+      openRegistration(city);
+    } else {
+      // Coming Soon → open Notify Me popup
+      setNotifyCity(city);
     }
   };
 
@@ -109,9 +109,9 @@ function Landing() {
           }}
         />
         <Exhibitions
-          selectedCityId={selectedCityId}
           onCityClick={handleCityClick}
           onRegister={openRegistration}
+          onNotify={(city) => setNotifyCity(city)}
         />
         <Footprint />
         <WhyVisit />
@@ -133,6 +133,12 @@ function Landing() {
           <RegistrationModal
             exhibition={selectedExhibition}
             onClose={() => setModalOpen(false)}
+          />
+        )}
+        {notifyCity && (
+          <NotifyModal
+            city={notifyCity}
+            onClose={() => setNotifyCity(null)}
           />
         )}
       </div>

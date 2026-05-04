@@ -24,10 +24,12 @@ export default function WhyVisit() {
           <p>
             The Rudralife Exhibition offers a unique and enriching experience for spiritual seekers
             and collectors. Visitors can explore rare Rudraksha beads, test their existing ones,
-            and receive free expert consultation for themselves and their family. The exhibition
-            also provides customized combinations, exclusive malas, and valuable guidance on proper
-            usage, helping you deepen your understanding of Rudraksha in an authentic and
-            meaningful way.
+            and receive free expert consultation for themselves and their family.
+          </p>
+          <p>
+            The exhibition also provides customized combinations, exclusive malas, and valuable
+            guidance on proper usage, helping you deepen your understanding of Rudraksha in an
+            authentic and meaningful way.
           </p>
         </div>
 
