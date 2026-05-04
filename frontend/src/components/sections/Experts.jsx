@@ -29,7 +29,12 @@ export default function Experts() {
                 <div className="rl-expert-face rl-expert-front">
                   <div className="rl-expert-photo">
                     <img src={e.img} alt={e.name} loading="lazy" />
-                    <span className="rl-expert-years">{e.years}</span>
+                    <span
+                      className="rl-expert-tap-info"
+                      data-testid={`expert-tap-info-${i}`}
+                    >
+                      Tap for More Information
+                    </span>
                   </div>
                   <div className="rl-expert-meta">
                     <h4>{e.name}</h4>
@@ -37,7 +42,6 @@ export default function Experts() {
                   </div>
                 </div>
                 <div className="rl-expert-face rl-expert-back">
-                  <div className="rl-expert-years-back">{e.years}</div>
                   <h4>{e.name}</h4>
                   <div className="role">{e.title}</div>
                   <p>{e.bio}</p>

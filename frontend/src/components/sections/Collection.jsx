@@ -1,9 +1,28 @@
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import { products } from "@/data/content";
 
 export default function Collection() {
   const trackRef = useRef(null);
+  const rafRef = useRef(0);
   const row = [...products, ...products];
+
+  // Continuous, non-stop autoplay via requestAnimationFrame.
+  // Hover/touch does NOT pause. Manual arrows simply scrollBy on top of the drift.
+  useEffect(() => {
+    const el = trackRef.current;
+    if (!el) return;
+    const SPEED = 0.45; // px per frame ≈ 27px/sec
+    const tick = () => {
+      if (el.scrollWidth > el.clientWidth) {
+        const half = el.scrollWidth / 2;
+        el.scrollLeft += SPEED;
+        if (el.scrollLeft >= half) el.scrollLeft -= half;
+      }
+      rafRef.current = requestAnimationFrame(tick);
+    };
+    rafRef.current = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(rafRef.current);
+  }, []);
 
   const scrollBy = (dir) => {
     const el = trackRef.current;
@@ -31,8 +50,8 @@ export default function Collection() {
         >
           ‹
         </button>
-        <div className="rl-scroll-track" ref={trackRef}>
-          <div className="rl-scroll-inner">
+        <div className="rl-scroll-track rl-scroll-auto" ref={trackRef} data-testid="collection-track">
+          <div className="rl-scroll-inner rl-scroll-inner-static">
             {row.map((p, i) => (
               <div className="rl-product" key={p.id + i} data-testid={`product-${p.id}-${i}`}>
                 <div className="rl-product-img">

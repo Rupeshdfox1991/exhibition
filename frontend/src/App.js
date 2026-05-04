@@ -7,6 +7,7 @@ import Hero from "@/components/sections/Hero";
 import Exhibitions from "@/components/sections/Exhibitions";
 import RegistrationModal from "@/components/sections/RegistrationModal";
 import NotifyModal from "@/components/sections/NotifyModal";
+import EventDetailsModal from "@/components/sections/EventDetailsModal";
 import Footprint from "@/components/sections/Footprint";
 import WhyVisit from "@/components/sections/WhyVisit";
 import Collection from "@/components/sections/Collection";
@@ -56,6 +57,7 @@ function useReveal() {
 function Landing() {
   const [modalOpen, setModalOpen] = useState(false);
   const [notifyCity, setNotifyCity] = useState(null);
+  const [eventDetailsCity, setEventDetailsCity] = useState(null);
   const [selectedExhibition, setSelectedExhibition] = useState(null);
   const [exhibitions, setExhibitions] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -84,8 +86,8 @@ function Landing() {
 
   const handleCityClick = (city) => {
     if (city.status === "live") {
-      // Open registration popup instantly — no scroll
-      openRegistration(city);
+      // Live → show event details first; Register Now button opens form
+      setEventDetailsCity(city);
     } else {
       // Coming Soon → open Notify Me popup
       setNotifyCity(city);
@@ -103,10 +105,7 @@ function Landing() {
         <Navbar onRegister={() => openRegistration(null)} />
         <Hero
           onRegister={scrollToExhibitions}
-          onKnowMore={() => {
-            const el = document.getElementById("about");
-            if (el) el.scrollIntoView({ behavior: "smooth" });
-          }}
+          onKnowMore={scrollToExhibitions}
         />
         <Exhibitions
           onCityClick={handleCityClick}
@@ -129,6 +128,16 @@ function Landing() {
             if (el) el.scrollIntoView({ behavior: "smooth" });
           }}
         />
+        {eventDetailsCity && (
+          <EventDetailsModal
+            city={eventDetailsCity}
+            onClose={() => setEventDetailsCity(null)}
+            onRegister={(city) => {
+              setEventDetailsCity(null);
+              openRegistration(city);
+            }}
+          />
+        )}
         {modalOpen && (
           <RegistrationModal
             exhibition={selectedExhibition}

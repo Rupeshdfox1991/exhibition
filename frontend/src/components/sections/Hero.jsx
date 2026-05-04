@@ -51,7 +51,7 @@ export default function Hero({ onRegister, onKnowMore }) {
               <span style={{ marginLeft: 2 }}>→</span>
             </button>
             <button className="rl-btn rl-btn-ghost" data-testid="hero-know-more-btn" onClick={onKnowMore}>
-              Know More
+              Get Notified When We Visit Your City
             </button>
           </div>
           <div className="rl-hero-stats">

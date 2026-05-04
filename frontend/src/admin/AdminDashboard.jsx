@@ -126,6 +126,113 @@ function LeadsTab({ exhibitions }) {
   );
 }
 
+// ─────────── Coming Soon Leads Tab ───────────
+function ComingSoonLeadsTab() {
+  const [items, setItems] = useState([]);
+  const [total, setTotal] = useState(0);
+  const [loading, setLoading] = useState(false);
+  const [filters, setFilters] = useState({
+    date_from: "", date_to: "", city: "", exhibition_type: "",
+  });
+
+  const load = async () => {
+    setLoading(true);
+    try {
+      const data = await api.listNotifyInterest(filters);
+      setItems(data.items || []);
+      setTotal(data.total || 0);
+    } finally { setLoading(false); }
+  };
+
+  useEffect(() => {
+    load();
+    const t = setInterval(load, 3000);
+    return () => clearInterval(t);
+    // eslint-disable-next-line
+  }, [filters]);
+
+  const update = (k, v) => setFilters((f) => ({ ...f, [k]: v }));
+  const clear = () => setFilters({ date_from: "", date_to: "", city: "", exhibition_type: "" });
+
+  const cityOptions = useMemo(() => {
+    const set = new Set(items.map((i) => i.interested_city).filter(Boolean));
+    return Array.from(set).sort();
+  }, [items]);
+
+  return (
+    <div data-testid="notify-leads-tab">
+      <div className="rl-admin-bar">
+        <div className="rl-admin-bar-grid">
+          <div className="rl-field">
+            <label>From Date</label>
+            <input type="date" value={filters.date_from} onChange={(e) => update("date_from", e.target.value)} data-testid="notify-filter-date-from" />
+          </div>
+          <div className="rl-field">
+            <label>To Date</label>
+            <input type="date" value={filters.date_to} onChange={(e) => update("date_to", e.target.value)} data-testid="notify-filter-date-to" />
+          </div>
+          <div className="rl-field">
+            <label>City</label>
+            <select value={filters.city} onChange={(e) => update("city", e.target.value)} data-testid="notify-filter-city">
+              <option value="">All Cities</option>
+              {cityOptions.map((c) => <option key={c} value={c}>{c}</option>)}
+            </select>
+          </div>
+          <div className="rl-field">
+            <label>Type</label>
+            <select value={filters.exhibition_type} onChange={(e) => update("exhibition_type", e.target.value)} data-testid="notify-filter-type">
+              <option value="">All</option>
+              <option value="domestic">Domestic</option>
+              <option value="international">International</option>
+            </select>
+          </div>
+        </div>
+        <div className="rl-admin-actions">
+          <button className="rl-btn-text" onClick={clear} data-testid="notify-filter-clear">Clear Filters</button>
+          <button className="rl-btn rl-btn-primary" onClick={() => api.exportNotifyInterest(filters)} data-testid="notify-export-excel">
+            ⬇ Export Excel
+          </button>
+        </div>
+      </div>
+
+      <div className="rl-admin-meta">
+        <span>{loading ? "Loading…" : `${total} inquiry${total !== 1 ? " · inquiries" : ""}`}</span>
+        <span className="rl-admin-live"><span className="rl-admin-dot" /> Live · refresh every 3s</span>
+      </div>
+
+      <div className="rl-admin-table-wrap">
+        <table className="rl-admin-table" data-testid="notify-leads-table">
+          <thead>
+            <tr>
+              <th>Created</th>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Phone</th>
+              <th>Interested City</th>
+              <th>Type</th>
+            </tr>
+          </thead>
+          <tbody>
+            {items.length === 0 && !loading && (
+              <tr><td colSpan={6} style={{ textAlign: "center", padding: 28, color: "rgba(253,248,240,0.55)" }}>No coming-soon inquiries yet</td></tr>
+            )}
+            {items.map((r) => (
+              <tr key={r.id} data-testid={`notify-row-${r.id}`}>
+                <td>{fmt(r.created_at)}</td>
+                <td>{r.full_name}</td>
+                <td>{r.email}</td>
+                <td>{r.dial_code} {r.phone}</td>
+                <td>{r.interested_city}</td>
+                <td style={{ textTransform: "capitalize" }}>{r.exhibition_type || "—"}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
 // ─────────── Exhibitions Tab ───────────
 function emptyExhibition() {
   return { name: "", type: "domestic", image: "", status: "soon", start_date: "", end_date: "", timings: "10:00 AM to 8:00 PM (Sunday Open)", venue: "", address: "", order: 50 };
@@ -315,7 +422,8 @@ export default function AdminDashboard() {
             </div>
           </div>
           <nav className="rl-admin-tabs">
-            <button className={`rl-admin-tab ${tab === "leads" ? "active" : ""}`} onClick={() => setTab("leads")} data-testid="tab-leads">Leads</button>
+            <button className={`rl-admin-tab ${tab === "leads" ? "active" : ""}`} onClick={() => setTab("leads")} data-testid="tab-leads">Exhibition Leads</button>
+            <button className={`rl-admin-tab ${tab === "notify" ? "active" : ""}`} onClick={() => setTab("notify")} data-testid="tab-notify-leads">Coming Soon Leads</button>
             <button className={`rl-admin-tab ${tab === "exhibitions" ? "active" : ""}`} onClick={() => setTab("exhibitions")} data-testid="tab-exhibitions">Exhibitions</button>
           </nav>
           <div className="rl-admin-user-actions">
@@ -325,7 +433,9 @@ export default function AdminDashboard() {
         </div>
       </header>
       <main className="rl-admin-main">
-        {tab === "leads" ? <LeadsTab exhibitions={exhibitions} /> : <ExhibitionsTab exhibitions={exhibitions} reload={reload} />}
+        {tab === "leads" && <LeadsTab exhibitions={exhibitions} />}
+        {tab === "notify" && <ComingSoonLeadsTab />}
+        {tab === "exhibitions" && <ExhibitionsTab exhibitions={exhibitions} reload={reload} />}
       </main>
     </div>
   );

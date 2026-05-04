@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { countries } from "@/data/countries";
+import { INDIAN_CITIES, INTERNATIONAL_CITIES } from "@/data/cities";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -100,7 +101,20 @@ export default function NotifyModal({ city, type = "domestic", onClose }) {
               </div>
               <div className="rl-field">
                 <label>Interested City</label>
-                <input type="text" data-testid="notify-city" value={form.interested_city} onChange={(e) => update("interested_city", e.target.value)} placeholder="e.g. Goa, Lucknow…" />
+                <select
+                  data-testid="notify-city"
+                  value={form.interested_city}
+                  onChange={(e) => update("interested_city", e.target.value)}
+                >
+                  <option value="">Select a city…</option>
+                  <optgroup label="India">
+                    {INDIAN_CITIES.map((c) => (<option key={`in-${c}`} value={c}>{c}</option>))}
+                  </optgroup>
+                  <optgroup label="International">
+                    {INTERNATIONAL_CITIES.map((c) => (<option key={`int-${c}`} value={c}>{c}</option>))}
+                  </optgroup>
+                  <option value="Other">Other (not listed)</option>
+                </select>
                 {errors.interested_city && <div className="rl-field-err">{errors.interested_city}</div>}
               </div>
             </div>

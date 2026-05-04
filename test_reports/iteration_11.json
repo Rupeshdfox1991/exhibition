@@ -1,0 +1,65 @@
+{
+  "summary": "Iteration 11 — verified Iteration-14 UI/UX changes (EventDetailsModal intermediate step, NotifyModal city dropdown, separate Coming Soon Leads admin tab, Experts 'Tap for More Information', Hero 'Get Notified' smooth-scroll, Collection autoplay). 32/32 backend pytest pass (added 11 new tests for /api/notify-interest public POST + admin GET/filter/export). 14/15 frontend Playwright assertions pass. ONE REAL BUG FOUND: Collection autoplay (Collection.jsx) does not advance — `el.scrollLeft += 0.45` per frame is floored to 0 by the browser so position never accumulates.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [
+      {
+        "component": "Collection (rl-scroll-track autoplay)",
+        "issue": "Track does NOT auto-scroll. scrollLeft remains 0 indefinitely. Root cause: in /app/frontend/src/components/sections/Collection.jsx line 18, `el.scrollLeft += SPEED` where SPEED=0.45 — browsers floor scrollLeft to an integer, so each frame writes scrollLeft=0.45, reads back 0, adds 0.45, writes 0.45, reads back 0… Net delta is always 0. Hover-no-pause and manual arrows DO work (manual scrollBy(320) works fine), but the continuous autoplay requirement is broken.",
+        "selector": "[data-testid=collection-track]",
+        "priority": "HIGH"
+      }
+    ],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "verification_details": {
+    "backend_pytest": "32/32 passed (test_notify_interest.py 11 NEW + test_rudralife_admin.py 15 + test_rudralife_api.py 6) in 4.15s. JUnit: /app/test_reports/pytest/pytest_iter11.xml",
+    "frontend_playwright": {
+      "1_hero_get_notified_text_and_smooth_scroll": "PASS — button text = 'Get Notified When We Visit Your City', click smooth-scrolls to #exhibitions without URL change",
+      "2_live_card_opens_event_details_first": "PASS — Chennai live card → EventDetailsModal opens, RegistrationModal does NOT open directly",
+      "3_event_details_content": "PASS — event-dates='15th to 17th May 2026', event-timings='10:00 am to 8:00 pm (Sunday Open)', event-venue='The Park Chennai', event-maps-link href contains google.com/maps/search and target=_blank",
+      "4_register_now_transitions_to_registration_modal": "PASS — clicking event-register-now-btn closes EventDetails and opens RegistrationModal",
+      "5_coming_soon_card_opens_notify_modal": "PASS — 15 notify-tap cards on domestic tab; clicking the parent card opens notify-modal",
+      "6_notify_city_is_select_dropdown": "PASS — notify-city tag=SELECT, optgroups=[India, International], pre-filled value='Hyderabad' on Hyderabad card",
+      "7_notify_full_submit_flow": "PASS — POST /api/notify-interest 200, success screen rendered",
+      "8_collection_autoplay_continuous_no_hover_pause": "FAIL — scrollLeft never increments (stays 0); see ui_bugs above. Hover-no-pause IS correctly removed (no rl-scroll-track:hover paused-state for rl-scroll-auto), and manual arrows (collection-arrow-left/right) work.",
+      "9_experts_tap_info_replaces_years_badge": "PASS — 0 .rl-expert-years elements anywhere in DOM, 7 expert-tap-info-* labels with text 'Tap for More Information', card flips on click",
+      "10_experts_mobile_2_column": "PASS — at 390x844 first two cards share y=359, w=166px each, no overflow",
+      "11_admin_three_tabs_visible_and_switch": "PASS — tab-leads, tab-notify-leads, tab-exhibitions all switch correctly",
+      "12_coming_soon_leads_tab_table": "PASS — headers=['Created','Name','Email','Phone','Interested City','Type'], 4 rows loaded from /api/admin/notify-interest",
+      "13_notify_filter_by_type_international": "PASS — filter narrows 4→1 rows when type=international",
+      "14_notify_excel_export_download": "PASS — downloaded rudralife_notifyme_20260504_122846.xlsx",
+      "15_existing_registration_persists_in_exhibition_leads_tab": "PASS — leads-table shows 50 rows; registration flow (live → event details → Register Now → submit) still persists"
+    }
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_notify_interest.py",
+    "/app/backend/tests/test_rudralife_admin.py",
+    "/app/backend/tests/test_rudralife_api.py",
+    "/app/test_reports/pytest/pytest_iter11.xml"
+  ],
+  "action_items": [
+    "FIX Collection autoplay sub-pixel accumulation bug. In /app/frontend/src/components/sections/Collection.jsx replace `el.scrollLeft += SPEED` with a virtual position accumulator. Suggested fix:\n  let pos = 0;\n  const tick = () => {\n    if (el.scrollWidth > el.clientWidth) {\n      pos += SPEED;\n      const half = el.scrollWidth / 2;\n      if (pos >= half) pos -= half;\n      el.scrollLeft = pos;  // browsers floor on read but a fresh write each frame is fine when the source value is monotonic\n    }\n    rafRef.current = requestAnimationFrame(tick);\n  };\nAlternatively bump SPEED to >=1 (e.g. SPEED=1, 60px/sec) — but the accumulator approach is more robust and lets you keep slow drift. Verify by running `scrollLeft` poll in DevTools — should advance ~27px/sec.",
+    "(MINOR) Effect cleanup: in Collection.jsx the rAF cleanup `cancelAnimationFrame(rafRef.current)` cancels the *currently-pending* frame, but if a tick has already overwritten rafRef.current with the next id, cancellation can still race in StrictMode. Consider using an `alive` flag captured in closure: `let alive = true; ...if (!alive) return; ... return () => { alive = false; cancelAnimationFrame(rafRef.current); };`"
+  ],
+  "critical_code_review_comments": [
+    "[BUG] Collection.jsx fractional scrollLeft never accumulates — see action_items.",
+    "[GOOD] EventDetailsModal cleanly separates the read-only event info step from RegistrationModal; data-testids comprehensive (event-details-modal, event-dates, event-timings, event-venue, event-maps-link, event-register-now-btn). Google Maps URL correctly uses encodeURIComponent and target=_blank with rel=noopener noreferrer.",
+    "[GOOD] NotifyModal uses optgroups (India / International) + 'Other (not listed)' fallback. Pre-fills interested_city from clicked city.name. POST /api/notify-interest returns 200 and success screen renders correctly.",
+    "[GOOD] AdminDashboard.jsx now exports Coming Soon Leads as a separate component (NotifyLeadsTab) with its own filters (date_from/date_to/city/type) and Excel export — backend /api/admin/notify-interest + /export both work and require auth.",
+    "[GOOD] Experts component cleanly removed all .rl-expert-years and replaces with rl-expert-tap-info — 0 stale CSS class instances in DOM. Mobile 2-col grid verified at 390px.",
+    "[GOOD] Hero 'Know More' button renamed to 'Get Notified When We Visit Your City' and onKnowMore handler smooth-scrolls (no URL change) — confirmed.",
+    "[NIT] AdminDashboard.jsx is now ~440 lines with 4 components (LeadsTab + NotifyLeadsTab + ExhibitionsTab + main). Past the 700-line threshold but on the upper edge — splitting into separate files would improve maintainability."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_notify_interest.py (NEW — 11 tests for /api/notify-interest public POST + admin GET/filter/export)"
+  ],
+  "success_rate": {"backend": "100% (32/32)", "frontend": "93% (14/15) — only Collection autoplay broken"},
+  "test_credentials": "admin@rudralife.com / Rudralife@2026 — verified working",
+  "seed_data_creation": "3 TEST_-prefixed notify-interest records created via /api/notify-interest (test_notify@example.com, test_notify_intl@example.com, test_notify_pwe2e@example.com). Will remain in DB but identifiable by TEST_ prefix.",
+  "retest_needed": true,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Admin login data-testids are admin-login-email / admin-login-password / admin-login-submit (NOT admin-email/admin-password from older iterations). Event-details flow: live card click → EventDetailsModal → 'Register Now' → RegistrationModal (two-step). Coming Soon flow: card click → NotifyModal (with optgroup select, NOT free text). Three admin tabs: tab-leads / tab-notify-leads / tab-exhibitions. /api/notify-interest persisted in db.notify_interest collection.",
+  "rca_of_the_issue": "Collection autoplay bug RCA — `el.scrollLeft = 0.45` is silently floored by browsers (Chrome/Firefox/Safari) to integer pixel values, so the increment is lost every frame. Each rAF tick reads `el.scrollLeft` (=0), adds 0.45, writes 0.45, but the next read returns 0 again. Need to maintain a JS-side float accumulator and only assign integer-rounded values to scrollLeft; OR bump SPEED to >=1 so the floored increment is at least 1px/frame. Reproduction: open homepage, scroll to Collection section, evaluate `document.querySelector('[data-testid=collection-track]').scrollLeft` — stays 0 indefinitely. Mitigation in action_items."
+}
