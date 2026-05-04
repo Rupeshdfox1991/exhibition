@@ -90,6 +90,25 @@ export const api = {
     a.click();
     window.URL.revokeObjectURL(url);
   },
+
+  // Notify Cities (admin-managed dropdown for Coming Soon form)
+  listNotifyCities: async () =>
+    (await axios.get(`${API}/admin/notify-cities`, { headers: authHeaders() })).data,
+  createNotifyCity: async (payload) =>
+    (await axios.post(`${API}/admin/notify-cities`, payload, { headers: authHeaders() })).data,
+  deleteNotifyCity: async (id) =>
+    (await axios.delete(`${API}/admin/notify-cities/${id}`, { headers: authHeaders() })).data,
+
+  // Image upload
+  uploadImage: async (file) => {
+    const fd = new FormData();
+    fd.append("file", file);
+    const { data } = await axios.post(`${API}/admin/upload-image`, fd, {
+      headers: { ...authHeaders(), "Content-Type": "multipart/form-data" },
+    });
+    // Return absolute URL so it works directly in <img src> on the public site
+    return { ...data, absolute_url: `${process.env.REACT_APP_BACKEND_URL}${data.url}` };
+  },
 };
 
 // Auto-logout on 401 across the app

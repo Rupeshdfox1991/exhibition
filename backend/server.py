@@ -4,8 +4,9 @@ from pathlib import Path
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
 
-from fastapi import FastAPI, APIRouter, HTTPException, Request, Depends, Query
+from fastapi import FastAPI, APIRouter, HTTPException, Request, Depends, Query, UploadFile, File
 from fastapi.responses import StreamingResponse
+from fastapi.staticfiles import StaticFiles
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
 from pydantic import BaseModel, Field, ConfigDict, EmailStr
@@ -15,6 +16,7 @@ from io import BytesIO
 import os
 import uuid
 import logging
+import shutil
 import bcrypt
 import jwt as pyjwt
 from openpyxl import Workbook
@@ -157,6 +159,17 @@ class StatusToggle(BaseModel):
     status: str  # "live" | "soon"
 
 
+class NotifyCityIn(BaseModel):
+    name: str
+    type: str = "domestic"  # "domestic" | "international"
+    order: int = 0
+
+
+class NotifyCity(NotifyCityIn):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+
+
 # ─────────────────────── Public endpoints ───────────────────────
 @api_router.get("/")
 async def root():
@@ -182,6 +195,13 @@ async def create_notify_interest(payload: NotifyInterestCreate):
     rec = NotifyInterest(**payload.model_dump())
     await db.notify_interest.insert_one(rec.model_dump())
     return rec
+
+
+@api_router.get("/notify-cities", response_model=List[NotifyCity])
+async def list_notify_cities_public():
+    """Public list of cities shown in the 'Notify Me' (Coming Soon) dropdown."""
+    docs = await db.notify_cities.find({}, {"_id": 0}).sort([("type", 1), ("order", 1), ("name", 1)]).to_list(500)
+    return docs
 
 
 # ─────────────────────── Admin auth ───────────────────────
@@ -406,8 +426,70 @@ async def export_notify_interest(
     )
 
 
+# ─────────────────────── Admin: Notify Cities (Coming Soon dropdown management) ───────────────────────
+@admin_router.get("/notify-cities", response_model=List[NotifyCity])
+async def admin_list_notify_cities(admin=Depends(get_current_admin)):
+    docs = await db.notify_cities.find({}, {"_id": 0}).sort([("type", 1), ("order", 1), ("name", 1)]).to_list(500)
+    return docs
+
+
+@admin_router.post("/notify-cities", response_model=NotifyCity)
+async def admin_create_notify_city(payload: NotifyCityIn, admin=Depends(get_current_admin)):
+    name_clean = payload.name.strip()
+    if not name_clean:
+        raise HTTPException(status_code=400, detail="City name is required")
+    if payload.type not in ("domestic", "international"):
+        raise HTTPException(status_code=400, detail="type must be 'domestic' or 'international'")
+    existing = await db.notify_cities.find_one({"name": {"$regex": f"^{name_clean}$", "$options": "i"}, "type": payload.type})
+    if existing:
+        raise HTTPException(status_code=409, detail=f"'{name_clean}' already exists for {payload.type}")
+    city = NotifyCity(name=name_clean, type=payload.type, order=payload.order)
+    await db.notify_cities.insert_one(city.model_dump())
+    return city
+
+
+@admin_router.delete("/notify-cities/{city_id}")
+async def admin_delete_notify_city(city_id: str, admin=Depends(get_current_admin)):
+    res = await db.notify_cities.delete_one({"id": city_id})
+    if res.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="City not found")
+    return {"deleted": True, "id": city_id}
+
+
+# ─────────────────────── Admin: Image upload ───────────────────────
+ALLOWED_IMG_EXT = {".jpg", ".jpeg", ".png", ".webp"}
+MAX_IMG_BYTES = 4 * 1024 * 1024  # 4MB hard cap
+
+
+@admin_router.post("/upload-image")
+async def admin_upload_image(file: UploadFile = File(...), admin=Depends(get_current_admin)):
+    ext = os.path.splitext(file.filename or "")[1].lower()
+    if ext not in ALLOWED_IMG_EXT:
+        raise HTTPException(status_code=400, detail=f"Unsupported file type. Allowed: {', '.join(sorted(ALLOWED_IMG_EXT))}")
+    fname = f"{uuid.uuid4().hex}{ext}"
+    target = UPLOAD_DIR / fname
+    written = 0
+    with target.open("wb") as buf:
+        while True:
+            chunk = await file.read(1024 * 64)
+            if not chunk:
+                break
+            written += len(chunk)
+            if written > MAX_IMG_BYTES:
+                buf.close()
+                target.unlink(missing_ok=True)
+                raise HTTPException(status_code=413, detail=f"File too large. Max {MAX_IMG_BYTES // (1024*1024)}MB")
+            buf.write(chunk)
+    return {"filename": fname, "url": f"/api/uploads/{fname}", "size": written}
+
+
 api_router.include_router(admin_router)
 app.include_router(api_router)
+
+# ─────────────────────── Static uploads (images) ───────────────────────
+UPLOAD_DIR = ROOT_DIR / "uploads"
+UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+app.mount("/api/uploads", StaticFiles(directory=str(UPLOAD_DIR)), name="uploads")
 
 # ─────────────────────── Middleware ───────────────────────
 app.add_middleware(
@@ -498,6 +580,20 @@ async def on_startup():
 
     # Index for notify_interest
     await db.notify_interest.create_index("created_at")
+    await db.notify_cities.create_index("id", unique=True)
+
+    # Seed notify_cities from exhibitions if collection empty
+    if await db.notify_cities.count_documents({}) == 0:
+        ex_docs = await db.exhibitions.find({}, {"_id": 0, "name": 1, "type": 1, "order": 1}).to_list(500)
+        seen = set()
+        for ex in ex_docs:
+            key = (ex.get("name", "").strip().lower(), ex.get("type", "domestic"))
+            if not ex.get("name") or key in seen:
+                continue
+            seen.add(key)
+            city = NotifyCity(name=ex["name"].strip(), type=ex.get("type", "domestic"), order=ex.get("order", 50))
+            await db.notify_cities.insert_one(city.model_dump())
+        logger.info(f"Seeded {len(seen)} notify_cities from exhibitions")
 
     # One-time migration: lowercase AM/PM in stored timings strings
     cursor = db.exhibitions.find({"timings": {"$regex": "AM|PM"}}, {"_id": 0, "id": 1, "timings": 1})

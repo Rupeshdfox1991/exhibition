@@ -1,0 +1,66 @@
+{
+  "summary": "Iteration 12 — Iteration-16 backend + frontend validation. 46/46 backend pytest pass (14 NEW for notify-cities CRUD + image upload + 32 regression). All 10 frontend acceptance criteria pass: NotifyModal SELECT with 21 options + Maybe Later, 4 admin tabs, Notify Cities CRUD round-trip with public dropdown sync, image upload returning absolute URL with preview, Experts 'Tap to See' top-left no-overflow at 390px, Collection arrows ≥280px (321/319) with continuous autoplay (no hover-pause). One minor UX miss: duplicate-city POST returns 409 but UI shows no error toast/message.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [
+      {
+        "component": "AdminDashboard NotifyCitiesTab",
+        "issue": "When a duplicate (same name+type) is submitted, backend correctly returns 409 but the form shows NO user-facing error message — failure is only visible in the browser console as 'Failed to load resource: 409'. Admin users will think the click did nothing.",
+        "selector": "[data-testid='notify-city-add']",
+        "priority": "MEDIUM"
+      }
+    ],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "verification_details": {
+    "backend_pytest": "46/46 passed in 9.38s — test_iter16_features.py 14 NEW (notify-cities CRUD: list-public, list-auth-required, create-auth-required, full-lifecycle incl. dup→409 + same-name-different-type allowed, invalid-type→400, missing-name→400/422, delete-unknown→404; upload-image: 401-without-token, png-upload+fetch-image, jpg, webp, non-image-ext→400 (.exe/.pdf), 5MB→413). JUnit: /app/test_reports/pytest/pytest_iter12.xml + pytest_iter12_full.xml",
+    "frontend_playwright": {
+      "1_notify_modal_dropdown_select": "PASS — tag=SELECT, 21 options (placeholder + 20 cities), optgroups=['Domestic (India)', 'International']; first opts=['', 'Hyderabad', 'Visakhapatnam', 'Bengaluru', 'Delhi']",
+      "2_notify_maybe_later_button": "PASS — [data-testid='notify-maybe-later-btn'] present with text 'Maybe Later'; click closes the modal without submission",
+      "3_admin_four_tabs": "PASS — tab-leads, tab-notify-leads, tab-exhibitions, tab-notify-cities all present and switch correctly",
+      "4_notify_cities_tab_seeded_grouped": "PASS — shows '🇮🇳 Domestic (16)' and '🌐 International (4)' headers; 20 [data-testid^='notify-city-chip-'] chips rendered",
+      "5_admin_add_city_appears_in_list": "PASS — typed 'TEST_UI_City_Z42'+international, clicked notify-city-add → chip appears in International group within ~1s; backend POST /api/admin/notify-cities returned new id",
+      "6_public_dropdown_reflects_after_add": "PASS — fetch('/api/notify-cities') after add returns the new city {name:'TEST_UI_City_Z42', type:'international', id:'cc612a4d-...'}; refreshing the public site picks it up via NotifyModal's existing fetch",
+      "7_admin_delete_city_removes_from_list_and_api": "PASS — clicked notify-city-delete-{id} → chip gone from DOM; subsequent fetch('/api/notify-cities') no longer contains the city",
+      "8_admin_duplicate_add_409_no_ui_msg": "PARTIAL — backend returns 409 correctly but UI shows no error toast (see ui_bugs)",
+      "9_admin_upload_image_helper_text": "PASS — form shows: 'Recommended 1200 × 800 px · 3:2 aspect ratio · JPG / PNG / WebP · max 4 MB. Larger or differently-shaped images will be auto-cropped to fit the card.'",
+      "10_admin_upload_image_flow": "PASS — selecting tiny PNG via [data-testid='exh-image-upload'] populates [data-testid='exh-image'] with absolute URL https://sacred-rudraksha-hub.preview.emergentagent.com/api/uploads/67dbf540c5064e9e85730ff29b93da24.png; preview thumb [data-testid='exh-image-thumb'] 120×80 with matching src",
+      "11_experts_tap_to_see_label": "PASS — 7 [data-testid^='expert-tap-info-'] labels, all with text 'Tap to See'",
+      "12_experts_no_overflow_at_390x844": "PASS — at 390×844 mobile viewport: card_w=166, lab_w=62, overflows_right=False, overflows_left=False, top_left position confirmed for first 3 cards",
+      "13_collection_arrow_right_advances_280plus": "PASS — scrollLeft 190 → 511 on right-arrow click (delta=321 ≥280)",
+      "14_collection_arrow_left_rewinds_280plus": "PASS — scrollLeft 540 → 221 on left-arrow click (delta=319 ≥280)",
+      "15_collection_autoplay_does_not_revert_arrow_within_1s": "PASS — 1s after right-arrow click: scrollLeft was 540 (vs 511 immediately after click) — autoplay continued forward, did NOT undo the manual click",
+      "16_collection_autoplay_continues_no_hover_pause": "PASS — without hover: 221 → 304 over 2.5s (delta=83); WITH hover for 2s: 306 → 378 (delta=72); autoplay does not pause on hover"
+    }
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_iter16_features.py",
+    "/app/test_reports/pytest/pytest_iter12.xml",
+    "/app/test_reports/pytest/pytest_iter12_full.xml"
+  ],
+  "action_items": [
+    "(MEDIUM) NotifyCitiesTab.add(): catch 409/400 error from createNotifyCity and surface it in the form (e.g., set local 'error' state and render under the Add button, or use a toast). Currently the request fails silently to the user. Suggested: in the catch block of `add`, set `setErr(e?.response?.data?.detail || 'Failed to add city')` and render `{err && <div className=\"rl-admin-error\">{err}</div>}` near the button.",
+    "(LOW/COSMETIC) Console hydration warning: `<span> cannot be a child of <option>` is emitted on every admin page load. Source is editor-tooling instrumentation (x-ve-dynamic / x-source-var injecting `<span style={{display:'contents'}}>` inside `<option>` of filter-exhibition and notify-filter-city). Not from app source. Will not appear in production CRA build but is noise during dev — safe to ignore."
+  ],
+  "critical_code_review_comments": [
+    "[GOOD] Backend Iteration-16 endpoints all clean: NotifyCity model excludes _id (find with {_id:0}), proper Pydantic validation, 409/400/404/401/413 status codes correct. Image upload streams in 64KB chunks and aborts mid-write at 4MB cap (memory-safe). Returns relative /api/uploads/{name} URL — frontend correctly resolves to absolute via REACT_APP_BACKEND_URL.",
+    "[GOOD] Startup seed of notify_cities is idempotent (only seeds when collection empty) and derives from existing exhibitions, giving exactly 20 cities (16 domestic + 4 international) matching exhibitions seed.",
+    "[GOOD] StaticFiles mount at /api/uploads + UPLOAD_DIR.mkdir(parents=True, exist_ok=True). Files persisted across requests; uploaded PNG fetched back with content-type image/png and intact magic bytes.",
+    "[GOOD] Admin UI: 4-tab navigation works, Notify Cities tab grouping (Domestic/International) is clear, helper text under image upload is descriptive (1200×800, 3:2, JPG/PNG/WebP, 4 MB).",
+    "[GOOD] Collection.jsx — autoplay regression FIXED. scrollLeft now advances continuously (~33 px/sec observed) and is NOT paused on hover. Manual arrows move ~320 px and autoplay does not undo the click within 1 s.",
+    "[GOOD] Experts.jsx — 'Tap to See' label rendered top-left of card (lab_l ≈ card_l, lab_w=62 < card_w=166), no horizontal overflow on 390×844 mobile.",
+    "[BUG-MEDIUM] AdminDashboard NotifyCitiesTab — duplicate add returns 409 but no error UI is shown; user gets no feedback. Same observation likely applies to bad-type / missing-name (400) errors. See action_items.",
+    "[NIT] AdminDashboard.jsx is now ~590 lines with 5 components (LeadsTab + NotifyLeadsTab + NotifyCitiesTab + ExhibitionsTab + main). Approaching the 700-line threshold; splitting into separate files in /app/frontend/src/admin/tabs/*.jsx would improve maintainability."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_iter16_features.py (NEW — 14 tests for notify-cities CRUD + image upload incl. 401/400/404/409/413 edge cases)"
+  ],
+  "success_rate": {"backend": "100% (46/46)", "frontend": "100% functional (16/16); 1 minor UX miss on dup-error feedback"},
+  "test_credentials": "admin@rudralife.com / Rudralife@2026 — verified working",
+  "seed_data_creation": "Test data created and cleaned up in same run: TEST_NotifyCity_LC (created → deleted), TEST_BadType (rejected 400), TEST_NoAuth (rejected 401), TEST_UI_City_Z42 (created via UI → deleted via UI). One residual: TEST_City_Updated/TEST_City_Lifecycle exhibition lifecycle test cleans up after itself. Three previous TEST_-prefixed notify-interest records remain from iteration_11.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Admin form data-testids in /app/frontend/src/admin/AdminDashboard.jsx: notify-city-name, notify-city-type, notify-city-order, notify-city-add, notify-city-chip-{id}, notify-city-delete-{id}; exhibition image upload uses exh-image (URL input), exh-image-upload (file input), exh-image-thumb (preview wrapper). Admin login: admin-login-email / admin-login-password / admin-login-submit. The 4 admin tabs are: tab-leads, tab-notify-leads, tab-exhibitions, tab-notify-cities. Public NotifyModal city dropdown is fetched fresh from /api/notify-cities on each open, so no hard-refresh required after admin add/delete — re-opening the modal is enough.",
+  "rca_of_the_issue": "Duplicate-city UX: api.createNotifyCity throws on 409 but NotifyCitiesTab.add() likely swallows the exception in a try/catch without setting local error state, so the UI shows nothing. Reproduce: admin → Notify Cities → add 'Hyderabad' (already exists as domestic) → click Add → no error message, but Network tab shows 409 with detail \"'Hyderabad' already exists for domestic\". Mitigation: surface backend detail in form (see action_items)."
+}

@@ -33,7 +33,7 @@ export default function Experts() {
                       className="rl-expert-tap-info"
                       data-testid={`expert-tap-info-${i}`}
                     >
-                      Tap for More Information
+                      Tap to See
                     </span>
                   </div>
                   <div className="rl-expert-meta">

@@ -1,7 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import { countries } from "@/data/countries";
-import { INDIAN_CITIES, INTERNATIONAL_CITIES } from "@/data/cities";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -9,6 +8,7 @@ export default function NotifyModal({ city, type = "domestic", onClose }) {
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
   const [errors, setErrors] = useState({});
+  const [cities, setCities] = useState([]);
   const [form, setForm] = useState({
     full_name: "",
     email: "",
@@ -19,12 +19,27 @@ export default function NotifyModal({ city, type = "domestic", onClose }) {
     exhibition_type: city?.type || type,
   });
 
+  // Fetch admin-managed city list (synced with exhibitions, manageable from admin panel)
+  useEffect(() => {
+    let alive = true;
+    axios.get(`${API}/notify-cities`)
+      .then((r) => { if (alive) setCities(Array.isArray(r.data) ? r.data : []); })
+      .catch(() => { if (alive) setCities([]); });
+    return () => { alive = false; };
+  }, []);
+
   useEffect(() => {
     const onKey = (e) => { if (e.key === "Escape") onClose(); };
     document.addEventListener("keydown", onKey);
     document.body.style.overflow = "hidden";
     return () => { document.removeEventListener("keydown", onKey); document.body.style.overflow = ""; };
   }, [onClose]);
+
+  const grouped = useMemo(() => {
+    const dom = cities.filter((c) => c.type === "domestic").map((c) => c.name);
+    const intl = cities.filter((c) => c.type === "international").map((c) => c.name);
+    return { dom, intl };
+  }, [cities]);
 
   const update = (k, v) => setForm((f) => ({ ...f, [k]: v }));
 
@@ -35,7 +50,7 @@ export default function NotifyModal({ city, type = "domestic", onClose }) {
     else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) e.email = "Enter a valid email";
     if (!form.phone.trim()) e.phone = "Please enter phone number";
     else if (!/^\d{6,15}$/.test(form.phone.replace(/\D/g, ""))) e.phone = "Enter a valid number";
-    if (!form.interested_city.trim()) e.interested_city = "Please enter the city you're interested in";
+    if (!form.interested_city.trim()) e.interested_city = "Please select a city";
     setErrors(e);
     return Object.keys(e).length === 0;
   };
@@ -106,20 +121,27 @@ export default function NotifyModal({ city, type = "domestic", onClose }) {
                   value={form.interested_city}
                   onChange={(e) => update("interested_city", e.target.value)}
                 >
-                  <option value="">Select a city…</option>
-                  <optgroup label="India">
-                    {INDIAN_CITIES.map((c) => (<option key={`in-${c}`} value={c}>{c}</option>))}
-                  </optgroup>
-                  <optgroup label="International">
-                    {INTERNATIONAL_CITIES.map((c) => (<option key={`int-${c}`} value={c}>{c}</option>))}
-                  </optgroup>
-                  <option value="Other">Other (not listed)</option>
+                  <option value="">
+                    {cities.length === 0 ? "Loading cities…" : "Select a city…"}
+                  </option>
+                  {grouped.dom.length > 0 && (
+                    <optgroup label="Domestic (India)">
+                      {grouped.dom.map((c) => <option key={`d-${c}`} value={c}>{c}</option>)}
+                    </optgroup>
+                  )}
+                  {grouped.intl.length > 0 && (
+                    <optgroup label="International">
+                      {grouped.intl.map((c) => <option key={`i-${c}`} value={c}>{c}</option>)}
+                    </optgroup>
+                  )}
                 </select>
                 {errors.interested_city && <div className="rl-field-err">{errors.interested_city}</div>}
               </div>
             </div>
             <div className="rl-modal-foot">
-              <span />
+              <button className="rl-btn-text" data-testid="notify-maybe-later-btn" onClick={onClose}>
+                Maybe Later
+              </button>
               <button className="rl-btn rl-btn-primary" data-testid="notify-submit-btn" disabled={submitting} onClick={submit}>
                 {submitting ? "Submitting..." : "Notify Me →"}
               </button>

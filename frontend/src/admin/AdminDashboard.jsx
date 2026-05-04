@@ -233,6 +233,107 @@ function ComingSoonLeadsTab() {
   );
 }
 
+// ─────────── Notify Cities Tab (manages dropdown shown in public Notify-Me form) ───────────
+function NotifyCitiesTab() {
+  const [items, setItems] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [form, setForm] = useState({ name: "", type: "domestic", order: 50 });
+  const [busy, setBusy] = useState(false);
+
+  const load = async () => {
+    setLoading(true);
+    try {
+      const data = await api.listNotifyCities();
+      setItems(Array.isArray(data) ? data : []);
+    } finally { setLoading(false); }
+  };
+
+  useEffect(() => { load(); }, []);
+
+  const grouped = useMemo(() => ({
+    domestic: items.filter((i) => i.type === "domestic").slice().sort((a, b) => (a.order ?? 0) - (b.order ?? 0) || a.name.localeCompare(b.name)),
+    international: items.filter((i) => i.type === "international").slice().sort((a, b) => (a.order ?? 0) - (b.order ?? 0) || a.name.localeCompare(b.name)),
+  }), [items]);
+
+  const add = async () => {
+    if (!form.name.trim()) { alert("City name is required"); return; }
+    setBusy(true);
+    try {
+      await api.createNotifyCity({ name: form.name.trim(), type: form.type, order: form.order });
+      setForm({ name: "", type: form.type, order: 50 });
+      await load();
+    } catch (e) {
+      alert(e?.response?.data?.detail || e.message);
+    } finally { setBusy(false); }
+  };
+
+  const remove = async (city) => {
+    if (!window.confirm(`Remove "${city.name}" from the Coming-Soon dropdown?`)) return;
+    await api.deleteNotifyCity(city.id);
+    await load();
+  };
+
+  return (
+    <div data-testid="notify-cities-tab">
+      <div className="rl-admin-helper-text" style={{ marginBottom: 16 }}>
+        These are the cities visitors can choose from in the public <strong>"Notify Me When You Visit"</strong> form.
+        Add or remove cities to match where Rudralife is planning to visit. Cities are auto-seeded from your Exhibitions list on first run.
+      </div>
+      <div className="rl-admin-form" data-testid="notify-city-form">
+        <h3>Add a City</h3>
+        <div className="rl-admin-form-grid">
+          <div className="rl-field"><label>City Name *</label>
+            <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })}
+              placeholder="e.g. Lucknow" data-testid="notify-city-name" />
+          </div>
+          <div className="rl-field"><label>Type</label>
+            <select value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })} data-testid="notify-city-type">
+              <option value="domestic">Domestic (India)</option>
+              <option value="international">International</option>
+            </select>
+          </div>
+          <div className="rl-field"><label>Display Order</label>
+            <input type="number" value={form.order} onChange={(e) => setForm({ ...form, order: parseInt(e.target.value || "0", 10) })} data-testid="notify-city-order" />
+          </div>
+        </div>
+        <div className="rl-admin-form-actions">
+          <span />
+          <button className="rl-btn rl-btn-primary" onClick={add} disabled={busy} data-testid="notify-city-add">
+            {busy ? "Adding…" : "+ Add City"}
+          </button>
+        </div>
+      </div>
+
+      {["domestic", "international"].map((t) => (
+        <div key={t} style={{ marginTop: 30 }}>
+          <h3 className="rl-admin-section-title">
+            {t === "domestic" ? "🇮🇳 Domestic" : "🌐 International"} ({grouped[t].length})
+          </h3>
+          <div className="rl-admin-chips">
+            {grouped[t].length === 0 && (
+              <div style={{ padding: 18, color: "rgba(253,248,240,0.55)" }}>
+                {loading ? "Loading…" : "No cities yet"}
+              </div>
+            )}
+            {grouped[t].map((c) => (
+              <div className="rl-admin-chip" key={c.id} data-testid={`notify-city-chip-${c.id}`}>
+                <span className="rl-admin-chip-name">{c.name}</span>
+                <button
+                  className="rl-admin-chip-x"
+                  onClick={() => remove(c)}
+                  data-testid={`notify-city-delete-${c.id}`}
+                  aria-label={`Remove ${c.name}`}
+                  title="Remove"
+                >✕</button>
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 // ─────────── Exhibitions Tab ───────────
 function emptyExhibition() {
   return { name: "", type: "domestic", image: "", status: "soon", start_date: "", end_date: "", timings: "10:00 AM to 8:00 PM (Sunday Open)", venue: "", address: "", order: 50 };
@@ -242,6 +343,7 @@ function ExhibitionsTab({ exhibitions, reload }) {
   const [editing, setEditing] = useState(null); // null | "new" | exhibition object
   const [form, setForm] = useState(emptyExhibition());
   const [busy, setBusy] = useState(false);
+  const [uploading, setUploading] = useState(false);
 
   const startNew = () => { setForm(emptyExhibition()); setEditing("new"); };
   const startEdit = (ex) => {
@@ -327,7 +429,57 @@ function ExhibitionsTab({ exhibitions, reload }) {
                 <option value="soon">Coming Soon</option>
               </select>
             </div>
-            <div className="rl-field"><label>Image URL</label><input value={form.image} onChange={(e) => update("image", e.target.value)} placeholder="https://..." data-testid="exh-image" /></div>
+            <div className="rl-field" style={{ gridColumn: "1 / -1" }}>
+              <label>Exhibition Image</label>
+              <div className="rl-admin-image-row">
+                {form.image && (
+                  <div className="rl-admin-image-thumb" data-testid="exh-image-thumb">
+                    <img src={form.image} alt="preview" />
+                  </div>
+                )}
+                <div className="rl-admin-image-controls">
+                  <input
+                    value={form.image}
+                    onChange={(e) => update("image", e.target.value)}
+                    placeholder="https://… or upload below"
+                    data-testid="exh-image"
+                  />
+                  <label className="rl-btn rl-btn-dark rl-admin-upload-btn" data-testid="exh-image-upload-label">
+                    {uploading ? "Uploading…" : "📤 Upload Image"}
+                    <input
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp"
+                      style={{ display: "none" }}
+                      disabled={uploading}
+                      data-testid="exh-image-upload"
+                      onChange={async (e) => {
+                        const f = e.target.files?.[0];
+                        if (!f) return;
+                        if (f.size > 4 * 1024 * 1024) {
+                          alert("Image is larger than 4 MB. Please compress or pick a smaller file.");
+                          e.target.value = "";
+                          return;
+                        }
+                        setUploading(true);
+                        try {
+                          const res = await api.uploadImage(f);
+                          update("image", res.absolute_url);
+                        } catch (err) {
+                          alert(err?.response?.data?.detail || err.message);
+                        } finally {
+                          setUploading(false);
+                          e.target.value = "";
+                        }
+                      }}
+                    />
+                  </label>
+                </div>
+              </div>
+              <div className="rl-admin-helper-text">
+                Recommended <strong>1200 × 800 px</strong> · 3:2 aspect ratio · JPG / PNG / WebP · max 4 MB.
+                Larger or differently-shaped images will be auto-cropped to fit the card.
+              </div>
+            </div>
             <div className="rl-field"><label>Start Date</label><input type="date" value={form.start_date || ""} onChange={(e) => update("start_date", e.target.value)} data-testid="exh-start" /></div>
             <div className="rl-field"><label>End Date</label><input type="date" value={form.end_date || ""} onChange={(e) => update("end_date", e.target.value)} data-testid="exh-end" /></div>
             <div className="rl-field"><label>Timings</label><input value={form.timings} onChange={(e) => update("timings", e.target.value)} data-testid="exh-timings" /></div>
@@ -425,6 +577,7 @@ export default function AdminDashboard() {
             <button className={`rl-admin-tab ${tab === "leads" ? "active" : ""}`} onClick={() => setTab("leads")} data-testid="tab-leads">Exhibition Leads</button>
             <button className={`rl-admin-tab ${tab === "notify" ? "active" : ""}`} onClick={() => setTab("notify")} data-testid="tab-notify-leads">Coming Soon Leads</button>
             <button className={`rl-admin-tab ${tab === "exhibitions" ? "active" : ""}`} onClick={() => setTab("exhibitions")} data-testid="tab-exhibitions">Exhibitions</button>
+            <button className={`rl-admin-tab ${tab === "cities" ? "active" : ""}`} onClick={() => setTab("cities")} data-testid="tab-notify-cities">Notify Cities</button>
           </nav>
           <div className="rl-admin-user-actions">
             <a href="/" target="_blank" rel="noopener noreferrer" className="rl-btn-text">View Site ↗</a>
@@ -436,6 +589,7 @@ export default function AdminDashboard() {
         {tab === "leads" && <LeadsTab exhibitions={exhibitions} />}
         {tab === "notify" && <ComingSoonLeadsTab />}
         {tab === "exhibitions" && <ExhibitionsTab exhibitions={exhibitions} reload={reload} />}
+        {tab === "cities" && <NotifyCitiesTab />}
       </main>
     </div>
   );
