@@ -345,7 +345,9 @@ export default function RegistrationModal({ exhibition, onClose }) {
             <div className="rl-modal-foot">
               {step > 1 ? (
                 <button className="rl-btn-text" data-testid="modal-back-btn" onClick={back}>← Back</button>
-              ) : <span />}
+              ) : (
+                <button className="rl-btn-text" data-testid="modal-maybe-later-btn" onClick={onClose}>Maybe Later</button>
+              )}
               {step < 3 ? (
                 <button className="rl-btn rl-btn-dark" data-testid="modal-next-btn" onClick={next}>
                   Next →

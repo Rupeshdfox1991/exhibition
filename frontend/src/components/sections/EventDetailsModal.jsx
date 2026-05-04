@@ -83,9 +83,9 @@ export default function EventDetailsModal({ city, onClose, onRegister }) {
                       rel="noopener noreferrer"
                       className="rl-event-maps-link"
                       data-testid="event-maps-link"
+                      title="Open in Google Maps"
                     >
                       {city.address}
-                      <span className="rl-event-maps-arrow">↗ Open in Google Maps</span>
                     </a>
                   ) : (
                     <div className="rl-event-value">{city.address}</div>
