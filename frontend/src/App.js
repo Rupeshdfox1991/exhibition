@@ -7,6 +7,7 @@ import Hero from "@/components/sections/Hero";
 import Exhibitions from "@/components/sections/Exhibitions";
 import RegistrationModal from "@/components/sections/RegistrationModal";
 import Footprint from "@/components/sections/Footprint";
+import WhyVisit from "@/components/sections/WhyVisit";
 import Collection from "@/components/sections/Collection";
 import Experts from "@/components/sections/Experts";
 import SeekersWorldwide from "@/components/sections/Testimonials";
@@ -113,6 +114,7 @@ function Landing() {
           onRegister={openRegistration}
         />
         <Footprint />
+        <WhyVisit />
         <Collection />
         <Experts />
         <SeekersWorldwide />

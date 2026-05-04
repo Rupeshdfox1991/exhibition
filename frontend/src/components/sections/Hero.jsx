@@ -33,7 +33,7 @@ export default function Hero({ onRegister, onKnowMore }) {
           <div className="rl-hero-om" data-testid="hero-om">ॐ नमः शिवाय</div>
           <div className="rl-hero-om-sub">Sacred Guidance Since 2001</div>
           <h1 className="rl-hero-title">
-            Explore with<br /><span className="gold">Rudralife</span>
+            Explore the world of<br /><span className="gold">Rudraksha</span> with Rudralife
           </h1>
           <p className="rl-hero-tagline">
             Sacred Rudraksha · Ancient Wisdom · Modern World
