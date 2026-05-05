@@ -115,6 +115,8 @@ export const api = {
     (await axios.get(`${API}/admin/site-content`, { headers: authHeaders() })).data,
   saveSiteContent: async (payload) =>
     (await axios.put(`${API}/admin/site-content`, payload, { headers: authHeaders() })).data,
+  resetSiteContent: async () =>
+    (await axios.delete(`${API}/admin/site-content`, { headers: authHeaders() })).data,
 };
 
 // Auto-logout on 401 across the app

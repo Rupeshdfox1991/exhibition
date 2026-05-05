@@ -511,8 +511,15 @@ async def admin_save_site_content(payload: dict, admin=Depends(get_current_admin
     doc["id"] = "main"
     doc["updated_at"] = datetime.now(timezone.utc).isoformat()
     doc["updated_by"] = admin.get("email", "")
-    await db.site_content.update_one({"id": "main"}, {"$set": doc}, upsert=True)
+    await db.site_content.replace_one({"id": "main"}, doc, upsert=True)
     return {"saved": True, "updated_at": doc["updated_at"]}
+
+
+@admin_router.delete("/site-content")
+async def admin_reset_site_content(admin=Depends(get_current_admin)):
+    """Clears the site-content doc, reverting all sections to their hard-coded defaults."""
+    await db.site_content.delete_many({"id": "main"})
+    return {"reset": True}
 
 
 api_router.include_router(admin_router)

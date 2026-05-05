@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { api } from "./api";
+import { seedListsWithDefaults } from "./cmsDefaults";
 
 // ─────────── Reusable controls ───────────
 function TextField({ label, value, onChange, placeholder, multiline = false, rows = 3, helper, testId }) {
@@ -168,7 +169,7 @@ export default function EditPageTab() {
   useEffect(() => {
     let alive = true;
     api.getSiteContent()
-      .then((d) => { if (alive) setContent(d || {}); })
+      .then((d) => { if (alive) setContent(seedListsWithDefaults(d || {})); })
       .catch((e) => setErr(e.message))
       .finally(() => { if (alive) setLoading(false); });
     return () => { alive = false; };
@@ -208,6 +209,20 @@ export default function EditPageTab() {
     } finally { setSaving(false); }
   };
 
+  const resetAll = async () => {
+    if (!window.confirm("Restore the entire page to defaults? All custom edits will be cleared on the live site.")) return;
+    setSaving(true);
+    setErr("");
+    try {
+      await api.resetSiteContent();
+      const fresh = await api.getSiteContent();
+      setContent(seedListsWithDefaults(fresh || {}));
+      setSavedAt(new Date().toISOString());
+    } catch (e) {
+      setErr(e?.response?.data?.detail || e.message);
+    } finally { setSaving(false); }
+  };
+
   if (loading) return <div style={{ padding: 40, textAlign: "center", color: "rgba(253,248,240,0.6)" }}>Loading site content…</div>;
 
   return (
@@ -218,6 +233,9 @@ export default function EditPageTab() {
           <p>Change anything on the public site — header, banner, sections, images, FAQs, autoscroll. Hit <strong>Save Changes</strong> when you're done; the live site updates instantly.</p>
         </div>
         <div className="rl-cms-toolbar-actions">
+          <button className="rl-btn-text rl-cms-reset" onClick={resetAll} disabled={saving} data-testid="cms-reset-btn">
+            ↺ Restore Defaults
+          </button>
           <button className="rl-btn rl-btn-primary rl-cms-save" onClick={save} disabled={saving} data-testid="cms-save-btn">
             {saving ? "Saving…" : "💾 Save Changes"}
           </button>

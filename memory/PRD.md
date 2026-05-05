@@ -19,6 +19,23 @@ See `/app/memory/test_credentials.md`
 
 ## Implemented (cumulative, latest first)
 
+### Iteration 18 (Feb 2026) — Edit Page CMS (Phase B)
+- **Backend**: new `site_content` singleton collection.
+  - Public `GET /api/site-content` (returns full tree or `{}`).
+  - Admin `GET /api/admin/site-content`, `PUT /api/admin/site-content` (replace_one, with `updated_at`/`updated_by`), `DELETE /api/admin/site-content` (Restore Defaults).
+- **Frontend `SiteContentProvider`** (`/app/frontend/src/SiteContent.jsx`): fetches once, exposed via `useSiteContent()`. Includes `pick(obj, "a.b.c", fallback)` helper that returns the fallback for missing/empty values so the public site never breaks with an empty CMS doc.
+- **Components wired to CMS** (with hard-coded fallbacks): Hero, WhyVisit/FocusBox, Footprint, Collection, FAQ, Stats, About + visibility toggles for Experts, Trusted/Seekers, VideoTestimonials, InMedia.
+- **Admin "Edit Page" tab** (`/app/frontend/src/admin/EditPageTab.jsx`):
+  - 14 collapsible sections: Header, Banner (Hero), Focus Box, Global Presence, Collection, Experts, Trusted, Video Testimonials, Media, FAQ, Stats, About, Footer, Forms.
+  - Reusable controls: TextField, ImageField (with upload + remove + thumbnail), Toggle, ListEditor (add/edit/delete/reorder).
+  - Visibility on/off per section (Focus Box, Global Presence, Collection, Experts, Trusted, Testimonials, Media, Stats, About).
+  - Image-upload helper text everywhere — **1920×720 banners**, **800×800 square**, **600×800 portrait**, **transparent PNG logos**.
+  - Auto-scroll controls: enable/disable + slow/medium/fast.
+  - **Defaults pre-seeded** (`/app/frontend/src/admin/cmsDefaults.js`) into list editors so admins see existing 6 focus points / FAQs / products / paragraphs and can edit-in-place rather than re-typing.
+  - **💾 Save Changes** + **↺ Restore Defaults** buttons in toolbar; live-time "Saved 06:00:30" indicator.
+- **Verified end-to-end**: edit Hero highlight, save → public site updates instantly; add 7th focus point → 7 visible publicly; Restore Defaults → reverts to 6.
+- **Test report**: iteration_13.json (13/13 backend new + 59/59 regression, plus the two HIGH/MEDIUM frontend issues raised by testing agent are now resolved).
+
 ### Iteration 17 — Phase A (Feb 2026): Focus Box + Auto-scroll polish
 - **Focus Box** ("Reasons to Explore the Rudralife Exhibition") inserted between Exhibitions and Global Presence. 6 sparkle ✨ bullet points rendered as gold-on-cream highlight card with subtle gradients, 2-column desktop / 1-column mobile, gold ring sparkle icon. Replaced the older "Why Visit" content with the user's exact copy. (`/app/frontend/src/components/sections/WhyVisit.jsx`, `.rl-focus-section`/`.rl-focus-card` styles in App.css.)
 - **Collection auto-scroll**: full rewrite of arrow behavior. Speed bumped from 0.6 → 0.75 px/frame (+25%). Arrows now queue extra pixels into a `arrowQueue` accumulator that the rAF loop eases to zero — autoplay literally never stops, arrows just shift position smoothly. Drift verified at 45 px/sec; arrow click adds 320 px boost while drift continues monotonically.
