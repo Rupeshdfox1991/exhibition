@@ -1,6 +1,9 @@
 import { videoTestimonials } from "@/data/content";
+import { useSiteContent, pick } from "@/SiteContent";
 
 export default function VideoTestimonials() {
+  const { content } = useSiteContent();
+  if (pick(content, "section_visibility.testimonials", true) === false) return null;
   return (
     <section className="rl-video-testi" id="client-say" data-testid="client-say-section">
       <div className="rl-container">

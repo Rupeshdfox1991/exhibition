@@ -1,0 +1,81 @@
+{
+  "summary": "Iteration 18 — Site-Content CMS end-to-end validation. Backend: 13/13 new pytest pass + full regression 59/59 pass. Frontend: 5 admin tabs confirmed (incl. ✎ Edit Page), 14 CMS sections rendered, Hero title-highlight round-trip works, Focus Box visibility toggle hides/shows on public, FAQ Add round-trip pushes item to public, Collection autoplay OFF → scrollLeft stable (delta=0), ON + fast → delta=199/3s. Helper texts present (1920×720 banner, 400×200 logo). Two DESIGN ISSUES found: (1) backend PUT /api/admin/site-content uses Mongo $set so PUT {} does NOT clear prior keys — contradicts the doc-comment 'Replaces the singleton'; (2) public components like WhyVisit/FAQ use saved `points`/`items` array as full override, so adding a single item via admin replaces the 6 default focus points (public shows only the new item, not 7 items). Banner image upload selector (cms-hero-banner-upload) test skipped due to timing on file-input; backend upload endpoint tested separately and passes. CMS reset to all-empty objects at end of run.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {
+        "endpoint": "PUT /api/admin/site-content",
+        "issue": "Implementation uses db.site_content.update_one({'id':'main'}, {'$set': doc}, upsert=True). Code-comment says 'Replaces the singleton site-content doc with the supplied JSON' but $set MERGES — sending {} leaves every previously-saved top-level key intact. Should use replace_one (preserving just id) or force frontend to always PUT the full tree with explicit empties (which it already does per code but a missing field still wouldn't be cleared)."
+      }
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [
+      {
+        "component": "WhyVisit / FAQ / Collection / Stats / About",
+        "issue": "Public list components use pick(content, '<key>.points/items', DEFAULTS). Once admin saves even ONE item, the fallback defaults disappear entirely. Expected flow in review request ('add point → public shows focus-point-6 as 7th point') does NOT work — only focus-point-0 appears. Admin UI starts with an EMPTY ListEditor (defaults are never pre-loaded into admin state), so admins cannot append without first re-typing all 6 defaults. Suggested fixes: (a) pre-populate admin state from defaults on first edit, or (b) public components merge admin list with defaults, or (c) relabel 'Reasons to Explore' admin list as full-replacement with a 'Reset to defaults' button.",
+        "selector": "[data-testid=focus-point-*], [data-testid=faq-q-*]",
+        "priority": "HIGH"
+      }
+    ],
+    "integration_issues": [
+      {
+        "flow": "Reset CMS doc",
+        "issue": "PUT /api/admin/site-content with {} is not a proper reset. Admin has no one-click reset button; next testing agent or admin user must send explicit empty objects for every top-level key to clear state.",
+        "affected_selectors": []
+      }
+    ],
+    "design_issues": []
+  },
+  "verification_details": {
+    "backend_pytest_iter18": "13/13 passed in 1.86s — TestSiteContent (public-get, put-401, put-saves+persists, put-empty-stamps, admin-get-requires-auth) + TestRegressionSmoke (exhibitions, register, notify-interest, admin-login, admin-registrations, admin-notify-interest, admin-notify-cities, admin-upload-image). JUnit: /app/test_reports/pytest/pytest_iter18.xml",
+    "backend_pytest_full_regression": "59/59 passed in 9.17s (all prior iteration tests still green). JUnit: /app/test_reports/pytest/pytest_iter18_full.xml",
+    "frontend_playwright": {
+      "1_admin_5_tabs": "PASS — tabs: EXHIBITION LEADS / COMING SOON LEADS / EXHIBITIONS / NOTIFY CITIES / ✎ EDIT PAGE (tab-leads, tab-notify-leads, tab-exhibitions, tab-notify-cities, tab-edit-page)",
+      "2_cms_14_sections": "PASS — cms-section-[navbar, hero, focus_box, global_presence, collection, experts, trusted, testimonials, media, faq, stats, about, footer, forms]",
+      "3_helper_texts_present": "PASS — 'Transparent PNG preferred · ~400 × 200 px · max 2 MB' (logo), 'Recommended 1920 × 720 px · landscape · max 4 MB · JPG/PNG/WebP' (banner). Square/portrait helpers exist in IMG_HELPERS constant (not screenshotted).",
+      "4_hero_title_hl_roundtrip": "PASS — filled cms-hero-title-hl='TEST_RudrakshaCMS' → save → public .rl-hero-title .gold shows 'TEST_RudrakshaCMS'",
+      "5_focus_box_visibility_toggle": "PASS — toggling cms-vis-focus_box off → save → public [data-testid=focus-box] no longer renders; re-enable → reappears",
+      "6_faq_add_roundtrip": "PARTIAL — new item appears as faq-q-0 on public ✓; BUT all 7+ default FAQ items disappear from public (public shows ONLY 1 faq item). See ui_bugs.",
+      "7_collection_autoplay_off": "PASS — cms-coll-autoplay off → save → public collection-track scrollLeft stable (3→3, delta=0 over 3s)",
+      "8_collection_autoplay_on_fast": "PASS — cms-coll-autoplay on + cms-coll-speed='fast' → save → scrollLeft advances 42→241 (delta=199 over 3s)",
+      "9_focus_point_add": "PARTIAL/FAIL-per-spec — cms-focus-point-add creates a new admin row at index 0 (admin ListEditor starts empty, never seeded with the 6 defaults). Save → public shows only 1 focus-point (focus-point-0), NOT 7 points with focus-point-6. Spec assertion 'new 7th point with focus-point-6' does not hold.",
+      "10_banner_image_upload_ui": "NOT TESTED via UI (set_input_files timed out waiting for [data-testid=cms-hero-banner-upload]). Backend /api/admin/upload-image verified working (TestRegressionSmoke.test_admin_upload_image passed, returned /api/uploads/{uuid}.png). ImageField component code review shows it fills URL into cms-hero-banner + renders thumb via .rl-admin-image-thumb — logic looks correct."
+    }
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_iter18_site_content.py",
+    "/app/test_reports/pytest/pytest_iter18.xml",
+    "/app/test_reports/pytest/pytest_iter18_full.xml"
+  ],
+  "action_items": [
+    "(HIGH) Fix list-editor default-loss behavior: either pre-populate admin state with default focus_points/faq/collection/stats/about when array is unset, OR merge admin list with defaults on public, OR add a 'Seed from defaults' button in each ListEditor. Current behavior makes it impossible to add a 7th focus point without re-typing all 6 existing ones.",
+    "(MEDIUM) Backend PUT /api/admin/site-content — switch from $set to db.site_content.replace_one({'id':'main'}, doc, upsert=True) so the docstring 'Replaces the singleton' is accurate, and to support clearing fields (including the admin 'Reset CMS' UX).",
+    "(MEDIUM) Add a 'Reset / Clear CMS' or 'Restore Defaults' button in EditPageTab toolbar for admins to revert site-content to {} without manual JSON.",
+    "(LOW) Console hydration warning: '<span> cannot be a child of <option>' (editor-tooling instrumentation) — cosmetic, ignorable in prod."
+  ],
+  "critical_code_review_comments": [
+    "[GOOD] Backend endpoints correctly wired: public GET /api/site-content returns {} when empty, admin GET/PUT require JWT (401 without token). updated_at + updated_by stamped on save. MongoDB _id properly excluded.",
+    "[GOOD] 5-tab admin layout and 14 CMS collapsible sections render cleanly. Section visibility toggle uses section_visibility.<key> path consistently across admin + public components.",
+    "[GOOD] Collection autoplay end-to-end works: toggle + speed (slow/medium/fast) correctly influence scrollLeft velocity on public site.",
+    "[GOOD] ImageField helper-text map (1920×720 banner, 800×800 square, 600×800 portrait, 400×200 logo PNG) matches spec.",
+    "[GOOD] Hero title-highlight round-trip confirms the SiteContentContext → public component wiring is correct for scalar fields.",
+    "[BUG-HIGH] ListEditor default-loss: all six public list sections (focus points, FAQ, collection products, hero stats, stats, about paragraphs) treat admin array as full override but admin starts with EMPTY arrays. Any add-then-save wipes defaults. Fix: hydrate admin state from defaults when a key is absent, OR `points = adminPoints?.length ? adminPoints : DEFAULTS` is already the public behaviour — the bug is the admin never receives defaults to edit.",
+    "[BUG-MEDIUM] PUT /api/admin/site-content uses $set merge, contradicting its docstring. Can never truly clear a key once added (only overwrite with new value).",
+    "[NIT] EditPageTab.jsx is 483 lines — approaching the split threshold. Consider breaking into sections/*.jsx (per-feature tabs) if it grows further.",
+    "[NIT] Hidden checkbox + custom slider: cms-vis-* and cms-coll-autoplay toggles require clicking the .rl-cms-toggle-slider (not the hidden <input>) to interact. Works fine for users but is non-obvious for automated test authors."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_iter18_site_content.py (NEW — 13 tests)"
+  ],
+  "success_rate": {
+    "backend": "100% (13/13 new; 59/59 regression)",
+    "frontend": "70% — 5/8 CMS flows fully passing; FAQ add and Focus-point add pass literally but show a design bug (default-loss); banner-upload UI selector interaction did not complete in playwright (backend upload API verified separately)"
+  },
+  "test_credentials": "admin@rudralife.com / Rudralife@2026 — verified working",
+  "seed_data_creation": "Test cleanup: CMS doc reset to all-empty top-level objects via authenticated PUT at end of run (public /api/site-content returns empty-values for all keys). TEST_iter18 registration + notify-interest rows remain in DB from smoke tests (same pattern as prior iterations).",
+  "retest_needed": true,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "CMS UI testids: cms-section-{navbar|hero|focus_box|global_presence|collection|experts|trusted|testimonials|media|faq|stats|about|footer|forms}, cms-vis-{sectionKey}, cms-save-btn, cms-hero-title-hl, cms-hero-banner (URL) + cms-hero-banner-upload (file input inside label), cms-coll-autoplay, cms-coll-speed (select slow/medium/fast), cms-focus-point-add, cms-focus-point-{i}-delete, cms-faq-item-add, cms-faq-item-{i}-delete. Custom toggles: click .rl-cms-toggle-slider (hidden input). Admin login via /admin/login → admin-login-email/password/submit. CMS reset workaround: PUT all top-level keys as empty {} or [] (sending {} alone does NOT clear due to $set merge bug).",
+  "rca_of_the_issue": "List-editor default-loss bug RCA: EditPageTab.jsx initializes content via api.getSiteContent() which returns {} initially. ListEditor binds to content[section].points (undefined at first). When admin clicks 'Add Point', it sets points=[{...blank}] — a 1-element array. On save, PUT writes focus_box.points=[newPoint]. Public WhyVisit.jsx does `pick(content, 'focus_box.points', DEFAULT_POINTS)` — pick returns the saved value if present (truthy), so the 1-element array WINS over 6 defaults. Reproduction: admin → Edit Page → expand Focus Box → click '+ Add Point' → type icon/title/body → Save → refresh public → only 1 point visible. Mitigation options: (A) On CMS load, if content.focus_box.points is undefined/empty, hydrate admin state from DEFAULT_POINTS so the admin sees/edits all six and appending adds a 7th. (B) In WhyVisit, if points is a non-empty but shorter array, optionally merge with defaults (questionable UX). Option (A) is strongly preferred and matches user expectation in the review request."
+}

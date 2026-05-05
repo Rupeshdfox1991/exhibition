@@ -1,7 +1,8 @@
 import { useState, useMemo } from "react";
 import { useExhibitions } from "@/App";
+import { useSiteContent, pick } from "@/SiteContent";
 
-const MAP_URL =
+const DEFAULT_MAP_URL =
   "https://customer-assets.emergentagent.com/job_sacred-rudraksha-hub/artifacts/dghkanxm_image.png";
 
 /*
@@ -20,18 +21,25 @@ const pins = [
 export default function Footprint() {
   const [openIndia, setOpenIndia] = useState(false);
   const { exhibitions } = useExhibitions();
+  const { content } = useSiteContent();
+  const tag = pick(content, "global_presence.tag", "Our Footprint");
+  const titleLine = pick(content, "global_presence.title", "Our Global");
+  const highlight = pick(content, "global_presence.title_highlight", "Presence");
+  const subtitle = pick(content, "global_presence.subtitle", "Five countries. One unbroken tradition. Hosted in five-star venues and private sanctums worldwide.");
+  const MAP_URL = pick(content, "global_presence.map_image", DEFAULT_MAP_URL);
   const domesticCities = useMemo(() => exhibitions.filter((e) => e.type === "domestic"), [exhibitions]);
+  if (pick(content, "section_visibility.global_presence", true) === false) return null;
 
   return (
     <section className="rl-map-section" id="footprint" data-testid="footprint-section">
       <div className="rl-container">
         <div style={{ textAlign: "center" }} className="rl-reveal">
-          <span className="rl-tag">Our Footprint</span>
+          <span className="rl-tag">{tag}</span>
           <h2 className="rl-heading" style={{ color: "var(--rl-cream)" }}>
-            Our Global <span className="gold">Presence</span>
+            {titleLine} <span className="gold">{highlight}</span>
           </h2>
           <p className="rl-subtitle" style={{ margin: "0 auto" }}>
-            Five countries. One unbroken tradition. Hosted in five-star venues and private sanctums worldwide.
+            {subtitle}
           </p>
         </div>
 

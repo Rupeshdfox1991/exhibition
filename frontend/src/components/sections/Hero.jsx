@@ -1,7 +1,8 @@
-const BANNER_URL =
+import { useSiteContent, pick } from "@/SiteContent";
+
+const DEFAULT_BANNER =
   "https://customer-assets.emergentagent.com/job_sacred-rudraksha-hub/artifacts/k4161fa8_1920%20x%20720%20Siddha%20Mala%20website%20Banner%2002%20copy.jpg%20%281%29.jpeg";
 
-// Small rudraksha bead SVG used beside CTAs
 const BeadIcon = ({ size = 16 }) => (
   <svg width={size} height={size} viewBox="0 0 32 32" fill="none" aria-hidden="true" style={{ flexShrink: 0 }}>
     <defs>
@@ -18,46 +19,65 @@ const BeadIcon = ({ size = 16 }) => (
 );
 
 export default function Hero({ onRegister, onKnowMore }) {
+  const { content } = useSiteContent();
+  const banner = pick(content, "hero.banner_image", DEFAULT_BANNER);
+  const est = pick(content, "hero.est_text", "EST. 2001 · MUMBAI");
+  const om = pick(content, "hero.om_text", "ॐ नमः शिवाय");
+  const omSub = pick(content, "hero.om_sub", "Sacred Guidance Since 2001");
+  const titleLine1 = pick(content, "hero.title_line1", "Explore the world of");
+  const titleHighlight = pick(content, "hero.title_highlight", "Rudraksha");
+  const titleLine2 = pick(content, "hero.title_line2", "with Rudralife");
+  const tagline = pick(content, "hero.tagline", "Sacred Rudraksha · Ancient Wisdom · Modern World");
+  const sub2 = pick(content, "hero.sub2", "Explore, Experience, Elevate with Rudralife");
+  const registerBtn = pick(content, "hero.register_btn", "Register Now");
+  const notifyBtn = pick(content, "hero.notify_btn", "Get Notified When We Visit Your City");
+  const stats = pick(content, "hero.stats", [
+    { num: "25+", lbl: "Years" },
+    { num: "1200+", lbl: "Exhibitions" },
+    { num: "5,00,000+", lbl: "Seekers" },
+  ]);
+
   return (
     <header className="rl-hero" id="home" data-testid="hero-section">
       <div
         className="rl-hero-bg"
-        style={{ backgroundImage: `url(${BANNER_URL})` }}
+        style={{ backgroundImage: `url(${banner})` }}
         data-testid="hero-banner-img"
       />
       <div className="rl-hero-sheen" />
 
       <div className="rl-hero-wrap">
         <div className="rl-hero-text">
-          <div className="rl-hero-est">EST. 2001 · MUMBAI</div>
-          <div className="rl-hero-om" data-testid="hero-om">ॐ नमः शिवाय</div>
-          <div className="rl-hero-om-sub">Sacred Guidance Since 2001</div>
+          <div className="rl-hero-est">{est}</div>
+          <div className="rl-hero-om" data-testid="hero-om">{om}</div>
+          <div className="rl-hero-om-sub">{omSub}</div>
           <h1 className="rl-hero-title">
-            Explore the world of<br /><span className="gold">Rudraksha</span> with Rudralife
+            {titleLine1}<br /><span className="gold">{titleHighlight}</span> {titleLine2}
           </h1>
-          <p className="rl-hero-tagline">
-            Sacred Rudraksha · Ancient Wisdom · Modern World
-          </p>
+          <p className="rl-hero-tagline">{tagline}</p>
           <div className="rl-divider" aria-hidden="true">
             <span className="line" />
             <span className="ornament">✦</span>
             <span className="line" />
           </div>
-          <p className="rl-hero-sub2">Explore, Experience, Elevate with Rudralife</p>
+          <p className="rl-hero-sub2">{sub2}</p>
           <div className="rl-hero-cta-row">
             <button className="rl-btn rl-btn-primary" data-testid="hero-register-btn" onClick={onRegister}>
               <BeadIcon size={18} />
-              Register Now
+              {registerBtn}
               <span style={{ marginLeft: 2 }}>→</span>
             </button>
             <button className="rl-btn rl-btn-ghost" data-testid="hero-know-more-btn" onClick={onKnowMore}>
-              Get Notified When We Visit Your City
+              {notifyBtn}
             </button>
           </div>
           <div className="rl-hero-stats">
-            <div className="rl-hero-stat"><div className="num">25+</div><div className="lbl">Years</div></div>
-            <div className="rl-hero-stat"><div className="num">1200+</div><div className="lbl">Exhibitions</div></div>
-            <div className="rl-hero-stat"><div className="num">5,00,000+</div><div className="lbl">Seekers</div></div>
+            {stats.map((s, i) => (
+              <div className="rl-hero-stat" key={i}>
+                <div className="num">{s.num}</div>
+                <div className="lbl">{s.lbl}</div>
+              </div>
+            ))}
           </div>
         </div>
       </div>

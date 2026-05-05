@@ -1,4 +1,5 @@
 import { seekers } from "@/data/content";
+import { useSiteContent, pick } from "@/SiteContent";
 
 function Card({ s }) {
   return (
@@ -15,6 +16,8 @@ function Card({ s }) {
 }
 
 export default function SeekersWorldwide() {
+  const { content } = useSiteContent();
+  if (pick(content, "section_visibility.trusted", true) === false) return null;
   const half = Math.ceil(seekers.length / 2);
   const row1 = [...seekers.slice(0, half), ...seekers.slice(0, half)];
   const row2 = [...seekers.slice(half), ...seekers.slice(half)];

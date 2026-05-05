@@ -1,8 +1,11 @@
 import { useState } from "react";
 import { experts } from "@/data/content";
+import { useSiteContent, pick } from "@/SiteContent";
 
 export default function Experts() {
   const [flipped, setFlipped] = useState(null);
+  const { content } = useSiteContent();
+  if (pick(content, "section_visibility.experts", true) === false) return null;
   return (
     <section className="rl-experts" id="experts" data-testid="experts-section">
       <div className="rl-container">

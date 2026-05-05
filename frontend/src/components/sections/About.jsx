@@ -1,16 +1,23 @@
-import { aboutParagraphs } from "@/data/content";
+import { aboutParagraphs as defaultParagraphs } from "@/data/content";
+import { useSiteContent, pick } from "@/SiteContent";
 
 export default function About() {
+  const { content } = useSiteContent();
+  if (pick(content, "section_visibility.about", true) === false) return null;
+  const tag = pick(content, "about.tag", "Since 2001");
+  const titleLine = pick(content, "about.title", "25 Years of");
+  const highlight = pick(content, "about.title_highlight", "Sacred Service");
+  const paragraphs = pick(content, "about.paragraphs", defaultParagraphs);
   return (
     <section className="rl-about" id="about" data-testid="about-section">
       <div className="rl-container">
         <div className="rl-about-grid">
           <div className="rl-about-text rl-reveal">
-            <span className="rl-tag">Since 2001</span>
+            <span className="rl-tag">{tag}</span>
             <h2 className="rl-heading" style={{ color: "var(--rl-bg-deep)" }}>
-              25 Years of <span className="gold">Sacred Service</span>
+              {titleLine} <span className="gold">{highlight}</span>
             </h2>
-            {aboutParagraphs.map((p, i) => (
+            {paragraphs.map((p, i) => (
               <p key={i}>{p}</p>
             ))}
           </div>

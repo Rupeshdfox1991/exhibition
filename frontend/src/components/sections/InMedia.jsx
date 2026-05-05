@@ -1,6 +1,9 @@
 import { mediaFeatures, mediaLogos } from "@/data/content";
+import { useSiteContent, pick } from "@/SiteContent";
 
 export default function InMedia() {
+  const { content } = useSiteContent();
+  if (pick(content, "section_visibility.media", true) === false) return null;
   const logos = [...mediaLogos, ...mediaLogos];
   return (
     <section className="rl-media" id="media" data-testid="media-section">

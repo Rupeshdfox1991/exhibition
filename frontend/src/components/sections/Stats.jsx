@@ -1,13 +1,19 @@
 import { useEffect, useRef, useState } from "react";
+import { useSiteContent, pick } from "@/SiteContent";
 
-const stats = [
-  { to: 500000, fmt: (n) => n.toLocaleString("en-IN") + "+", label: "Believe Clients" },
-  { to: 90, fmt: (n) => n + "%", label: "Repeat Customers" },
-  { to: 25, fmt: (n) => n + "+", label: "Years of Expertise" },
-  { to: 1200, fmt: (n) => n + "+", label: "Total Exhibitions" },
+const DEFAULT_STATS = [
+  { to: 500000, suffix: "+", thousands: true, label: "Believe Clients" },
+  { to: 90, suffix: "%", label: "Repeat Customers" },
+  { to: 25, suffix: "+", label: "Years of Expertise" },
+  { to: 1200, suffix: "+", label: "Total Exhibitions" },
 ];
 
-function Counter({ to, fmt, start }) {
+const fmtNum = (n, suffix, thousands) => {
+  const base = thousands ? n.toLocaleString("en-IN") : String(n);
+  return base + (suffix || "");
+};
+
+function Counter({ to, suffix, thousands, start }) {
   const [n, setN] = useState(0);
   useEffect(() => {
     if (!start) return;
@@ -24,12 +30,15 @@ function Counter({ to, fmt, start }) {
     raf = requestAnimationFrame(step);
     return () => cancelAnimationFrame(raf);
   }, [start, to]);
-  return <div className="rl-stat-num">{fmt(n)}</div>;
+  return <div className="rl-stat-num">{fmtNum(n, suffix, thousands)}</div>;
 }
 
 export default function Stats() {
   const ref = useRef(null);
   const [start, setStart] = useState(false);
+  const { content } = useSiteContent();
+  const items = pick(content, "stats.items", DEFAULT_STATS);
+  const hidden = pick(content, "section_visibility.stats", true) === false;
   useEffect(() => {
     const io = new IntersectionObserver(
       (entries) => { entries.forEach((e) => { if (e.isIntersecting) setStart(true); }); },
@@ -38,13 +47,14 @@ export default function Stats() {
     if (ref.current) io.observe(ref.current);
     return () => io.disconnect();
   }, []);
+  if (hidden) return null;
   return (
     <section className="rl-stats" id="stats" ref={ref} data-testid="stats-section">
       <div className="rl-container">
         <div className="rl-stats-grid">
-          {stats.map((s, i) => (
+          {items.map((s, i) => (
             <div key={i} data-testid={`stat-${i}`}>
-              <Counter to={s.to} fmt={s.fmt} start={start} />
+              <Counter to={Number(s.to) || 0} suffix={s.suffix} thousands={!!s.thousands} start={start} />
               <div className="rl-stat-lbl">{s.label}</div>
             </div>
           ))}

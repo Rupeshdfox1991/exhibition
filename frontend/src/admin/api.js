@@ -109,6 +109,12 @@ export const api = {
     // Return absolute URL so it works directly in <img src> on the public site
     return { ...data, absolute_url: `${process.env.REACT_APP_BACKEND_URL}${data.url}` };
   },
+
+  // Site Content (Edit Page CMS)
+  getSiteContent: async () =>
+    (await axios.get(`${API}/admin/site-content`, { headers: authHeaders() })).data,
+  saveSiteContent: async (payload) =>
+    (await axios.put(`${API}/admin/site-content`, payload, { headers: authHeaders() })).data,
 };
 
 // Auto-logout on 401 across the app

@@ -170,6 +170,12 @@ class NotifyCity(NotifyCityIn):
     created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
 
+class SiteContentIn(BaseModel):
+    """Free-form content document driven by the admin Edit Page CMS.
+    We accept any JSON the admin form produces and merge by top-level key."""
+    model_config = ConfigDict(extra="allow")
+
+
 # ─────────────────────── Public endpoints ───────────────────────
 @api_router.get("/")
 async def root():
@@ -202,6 +208,13 @@ async def list_notify_cities_public():
     """Public list of cities shown in the 'Notify Me' (Coming Soon) dropdown."""
     docs = await db.notify_cities.find({}, {"_id": 0}).sort([("type", 1), ("order", 1), ("name", 1)]).to_list(500)
     return docs
+
+
+@api_router.get("/site-content")
+async def get_site_content_public():
+    """Public read of admin-managed Edit Page content. Returns {} if never edited."""
+    doc = await db.site_content.find_one({"id": "main"}, {"_id": 0, "id": 0})
+    return doc or {}
 
 
 # ─────────────────────── Admin auth ───────────────────────
@@ -483,6 +496,25 @@ async def admin_upload_image(file: UploadFile = File(...), admin=Depends(get_cur
     return {"filename": fname, "url": f"/api/uploads/{fname}", "size": written}
 
 
+# ─────────────────────── Admin: Site Content (Edit Page CMS) ───────────────────────
+@admin_router.get("/site-content")
+async def admin_get_site_content(admin=Depends(get_current_admin)):
+    doc = await db.site_content.find_one({"id": "main"}, {"_id": 0, "id": 0})
+    return doc or {}
+
+
+@admin_router.put("/site-content")
+async def admin_save_site_content(payload: dict, admin=Depends(get_current_admin)):
+    """Replaces the singleton site-content doc with the supplied JSON.
+    Frontend should send the FULL content tree on each save."""
+    doc = dict(payload or {})
+    doc["id"] = "main"
+    doc["updated_at"] = datetime.now(timezone.utc).isoformat()
+    doc["updated_by"] = admin.get("email", "")
+    await db.site_content.update_one({"id": "main"}, {"$set": doc}, upsert=True)
+    return {"saved": True, "updated_at": doc["updated_at"]}
+
+
 api_router.include_router(admin_router)
 app.include_router(api_router)
 
@@ -581,6 +613,7 @@ async def on_startup():
     # Index for notify_interest
     await db.notify_interest.create_index("created_at")
     await db.notify_cities.create_index("id", unique=True)
+    await db.site_content.create_index("id", unique=True)
 
     # Seed notify_cities from exhibitions if collection empty
     if await db.notify_cities.count_documents({}) == 0:

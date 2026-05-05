@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { api, auth } from "./api";
+import EditPageTab from "./EditPageTab";
 
 const LOGO =
   "https://customer-assets.emergentagent.com/job_b271b1af-1da5-4630-96e0-320d96eb6add/artifacts/pm9yuvf5_New%20Rudralife%20final%20logo%20with%20tagline%20%28White%29%20%281%29.png";
@@ -583,6 +584,7 @@ export default function AdminDashboard() {
             <button className={`rl-admin-tab ${tab === "notify" ? "active" : ""}`} onClick={() => setTab("notify")} data-testid="tab-notify-leads">Coming Soon Leads</button>
             <button className={`rl-admin-tab ${tab === "exhibitions" ? "active" : ""}`} onClick={() => setTab("exhibitions")} data-testid="tab-exhibitions">Exhibitions</button>
             <button className={`rl-admin-tab ${tab === "cities" ? "active" : ""}`} onClick={() => setTab("cities")} data-testid="tab-notify-cities">Notify Cities</button>
+            <button className={`rl-admin-tab rl-admin-tab-cms ${tab === "edit-page" ? "active" : ""}`} onClick={() => setTab("edit-page")} data-testid="tab-edit-page">✎ Edit Page</button>
           </nav>
           <div className="rl-admin-user-actions">
             <a href="/" target="_blank" rel="noopener noreferrer" className="rl-btn-text">View Site ↗</a>
@@ -595,6 +597,7 @@ export default function AdminDashboard() {
         {tab === "notify" && <ComingSoonLeadsTab />}
         {tab === "exhibitions" && <ExhibitionsTab exhibitions={exhibitions} reload={reload} />}
         {tab === "cities" && <NotifyCitiesTab />}
+        {tab === "edit-page" && <EditPageTab />}
       </main>
     </div>
   );

@@ -22,6 +22,7 @@ import Footer from "@/components/sections/Footer";
 import AdminLogin from "@/admin/AdminLogin";
 import AdminDashboard from "@/admin/AdminDashboard";
 import ProtectedRoute from "@/admin/ProtectedRoute";
+import { SiteContentProvider } from "@/SiteContent";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -158,11 +159,13 @@ function Landing() {
 export default function App() {
   return (
     <BrowserRouter>
-      <Routes>
-        <Route path="/admin/login" element={<AdminLogin />} />
-        <Route path="/admin" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
-        <Route path="*" element={<Landing />} />
-      </Routes>
+      <SiteContentProvider>
+        <Routes>
+          <Route path="/admin/login" element={<AdminLogin />} />
+          <Route path="/admin" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
+          <Route path="*" element={<Landing />} />
+        </Routes>
+      </SiteContentProvider>
     </BrowserRouter>
   );
 }
