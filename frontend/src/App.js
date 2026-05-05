@@ -112,8 +112,8 @@ function Landing() {
           onRegister={openRegistration}
           onNotify={(city) => setNotifyCity(city)}
         />
-        <Footprint />
         <WhyVisit />
+        <Footprint />
         <Collection />
         <Experts />
         <SeekersWorldwide />

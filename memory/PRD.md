@@ -19,6 +19,14 @@ See `/app/memory/test_credentials.md`
 
 ## Implemented (cumulative, latest first)
 
+### Iteration 17 — Phase A (Feb 2026): Focus Box + Auto-scroll polish
+- **Focus Box** ("Reasons to Explore the Rudralife Exhibition") inserted between Exhibitions and Global Presence. 6 sparkle ✨ bullet points rendered as gold-on-cream highlight card with subtle gradients, 2-column desktop / 1-column mobile, gold ring sparkle icon. Replaced the older "Why Visit" content with the user's exact copy. (`/app/frontend/src/components/sections/WhyVisit.jsx`, `.rl-focus-section`/`.rl-focus-card` styles in App.css.)
+- **Collection auto-scroll**: full rewrite of arrow behavior. Speed bumped from 0.6 → 0.75 px/frame (+25%). Arrows now queue extra pixels into a `arrowQueue` accumulator that the rAF loop eases to zero — autoplay literally never stops, arrows just shift position smoothly. Drift verified at 45 px/sec; arrow click adds 320 px boost while drift continues monotonically.
+
+### Phase B — CMS for full-page editing (planned, next iteration)
+- Build `site_content` singleton in Mongo + new "Edit Page" admin tab covering Header, Banner, Focus Box, FAQ, Stats, About in the first cut, then Collection / Experts / Trusted / Video Testimonials / In-Media as Phase B-2.
+- Image upload helper text: 1920×720 (banner), 800×800 (square), 600×800 (portrait), PNG transparent for logos.
+
 ### Iteration 16 (Feb 2026) — Coming-Soon dropdown sync, image upload, carousel rewrite
 - **NotifyModal**: dropdown options now fetched from `GET /api/notify-cities` (admin-managed). Added **"Maybe Later"** button that closes the modal without submitting.
 - **Backend `notify_cities` collection** + endpoints:

@@ -4,117 +4,96 @@ import { products } from "@/data/content";
 export default function Collection() {
   const trackRef = useRef(null);
   const rafRef = useRef(0);
-  const interactRef = useRef({ paused: false, dragging: false, startX: 0, startScroll: 0, resumeAt: 0 });
+  // Continuous-scroll state. arrowQueue carries any extra pixels queued by left/right arrow
+  // clicks so the autoplay loop can ease toward the new position WITHOUT ever pausing.
+  const stateRef = useRef({ pos: 0, arrowQueue: 0, dragging: false, dragStartX: 0, dragStartScroll: 0 });
   const row = [...products, ...products];
 
-  // Continuous autoplay + manual control (arrows, wheel, touch-swipe, cursor-drag).
-  // Strategy: rAF advances scrollLeft each frame UNLESS user is interacting,
-  // in which case the browser/user owns scrollLeft and rAF stays out of the way.
   useEffect(() => {
     const el = trackRef.current;
     if (!el) return;
-    const SPEED = 0.6; // px per frame ≈ 36px/sec
+    const SPEED = 0.75; // px per frame ≈ 45px/sec (was 36 — +25% as requested)
     let alive = true;
-    let pos = el.scrollLeft || 0;
+    stateRef.current.pos = el.scrollLeft || 0;
 
     const tick = () => {
       if (!alive) return;
-      const i = interactRef.current;
-      const now = performance.now();
-      // If user paused us (arrow/wheel/touch), wait until resumeAt and resync from real scrollLeft
-      if (i.paused && now < i.resumeAt) {
+      const s = stateRef.current;
+      // While the user is actively dragging with the mouse, browser owns scrollLeft.
+      // Touch-swipe is also handled natively by the browser via overflow-x:auto.
+      if (s.dragging) {
+        s.pos = el.scrollLeft;
         rafRef.current = requestAnimationFrame(tick);
         return;
       }
-      if (i.paused && now >= i.resumeAt) {
-        i.paused = false;
-        pos = el.scrollLeft; // resync so autoplay continues from wherever the user left it
+      // Detect external (touch / wheel) scroll: if scrollLeft has drifted from our
+      // last write, resync `pos` so autoplay continues seamlessly from there.
+      if (Math.abs(el.scrollLeft - Math.floor(s.pos)) > 2) {
+        s.pos = el.scrollLeft;
       }
-      if (i.dragging) {
-        rafRef.current = requestAnimationFrame(tick);
-        return;
+      // Autoplay base movement
+      let extra = 0;
+      // Arrow momentum: ease toward 0, contributing to this frame's movement.
+      if (s.arrowQueue !== 0) {
+        const step = s.arrowQueue * 0.18; // ~85ms ease-out feel
+        extra = step;
+        s.arrowQueue -= step;
+        if (Math.abs(s.arrowQueue) < 0.5) {
+          extra += s.arrowQueue;
+          s.arrowQueue = 0;
+        }
       }
       if (el.scrollWidth > el.clientWidth) {
         const half = el.scrollWidth / 2;
-        pos += SPEED;
-        if (pos >= half) pos -= half;
-        el.scrollLeft = pos;
+        s.pos += SPEED + extra;
+        // Wrap around in both directions (left arrow can drive pos negative)
+        if (s.pos >= half) s.pos -= half;
+        else if (s.pos < 0) s.pos += half;
+        el.scrollLeft = s.pos;
       }
       rafRef.current = requestAnimationFrame(tick);
     };
     rafRef.current = requestAnimationFrame(tick);
 
-    // Pause autoplay for `ms` while user interacts; resync when expired
-    const pauseFor = (ms) => {
-      const i = interactRef.current;
-      i.paused = true;
-      i.resumeAt = performance.now() + ms;
-    };
-
-    // Wheel = pause briefly so trackpad / mouse-wheel-horizontal works
-    const onWheel = () => pauseFor(1500);
-    el.addEventListener("wheel", onWheel, { passive: true });
-
-    // Native touch-swipe (overflow-x:auto handles scrolling). We just pause autoplay.
-    const onTouchStart = () => { interactRef.current.dragging = true; };
-    const onTouchEnd = () => {
-      interactRef.current.dragging = false;
-      pauseFor(2000);
-    };
-    el.addEventListener("touchstart", onTouchStart, { passive: true });
-    el.addEventListener("touchend", onTouchEnd, { passive: true });
-    el.addEventListener("touchcancel", onTouchEnd, { passive: true });
-
     // Cursor-drag (desktop): mousedown → translate scrollLeft on mousemove
     const onMouseDown = (e) => {
-      // Ignore drags that originate on arrow buttons / images selection
       if (e.button !== 0) return;
-      const i = interactRef.current;
-      i.dragging = true;
-      i.startX = e.pageX;
-      i.startScroll = el.scrollLeft;
+      const s = stateRef.current;
+      s.dragging = true;
+      s.dragStartX = e.pageX;
+      s.dragStartScroll = el.scrollLeft;
       el.classList.add("rl-grabbing");
       e.preventDefault();
     };
     const onMouseMove = (e) => {
-      const i = interactRef.current;
-      if (!i.dragging) return;
-      const dx = e.pageX - i.startX;
-      el.scrollLeft = i.startScroll - dx;
+      const s = stateRef.current;
+      if (!s.dragging) return;
+      const dx = e.pageX - s.dragStartX;
+      el.scrollLeft = s.dragStartScroll - dx;
     };
     const onMouseUp = () => {
-      const i = interactRef.current;
-      if (!i.dragging) return;
-      i.dragging = false;
+      const s = stateRef.current;
+      if (!s.dragging) return;
+      s.dragging = false;
       el.classList.remove("rl-grabbing");
-      pauseFor(2000);
+      s.pos = el.scrollLeft;
     };
     el.addEventListener("mousedown", onMouseDown);
     window.addEventListener("mousemove", onMouseMove);
     window.addEventListener("mouseup", onMouseUp);
 
-    // Expose helper to arrow handler via the ref
-    interactRef.current.pauseFor = pauseFor;
-
     return () => {
       alive = false;
       cancelAnimationFrame(rafRef.current);
-      el.removeEventListener("wheel", onWheel);
-      el.removeEventListener("touchstart", onTouchStart);
-      el.removeEventListener("touchend", onTouchEnd);
-      el.removeEventListener("touchcancel", onTouchEnd);
       el.removeEventListener("mousedown", onMouseDown);
       window.removeEventListener("mousemove", onMouseMove);
       window.removeEventListener("mouseup", onMouseUp);
     };
   }, []);
 
+  // Arrow click: queue extra movement; autoplay rAF eases toward it without ever stopping.
   const scrollByDir = (dir) => {
-    const el = trackRef.current;
-    if (!el) return;
-    // Pause autoplay so the smooth-scroll animation isn't overwritten by rAF
-    interactRef.current.pauseFor?.(900);
-    el.scrollBy({ left: dir * 320, behavior: "smooth" });
+    stateRef.current.arrowQueue += dir * 320;
   };
 
   return (
