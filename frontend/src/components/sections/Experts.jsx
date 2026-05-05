@@ -1,29 +1,34 @@
 import { useState } from "react";
-import { experts } from "@/data/content";
+import { experts as defaultExperts } from "@/data/content";
 import { useSiteContent, pick } from "@/SiteContent";
 
 export default function Experts() {
   const [flipped, setFlipped] = useState(null);
   const { content } = useSiteContent();
+  const items = pick(content, "experts.items", defaultExperts);
+  const tag = pick(content, "experts.tag", "Guided by Masters");
+  const titleLine = pick(content, "experts.title", "Panel");
+  const highlight = pick(content, "experts.title_highlight", "Experts");
+  const titleSuffix = pick(content, "experts.title_suffix", "of Rudralife");
+  const subtitle = pick(content, "experts.subtitle", "Meet the guiding minds behind Rudralife's mission — a panel of Vedic experts bringing together ancient knowledge and deep compassion.");
   if (pick(content, "section_visibility.experts", true) === false) return null;
   return (
     <section className="rl-experts" id="experts" data-testid="experts-section">
       <div className="rl-container">
         <div className="rl-experts-head rl-reveal">
-          <span className="rl-tag">Guided by Masters</span>
+          <span className="rl-tag">{tag}</span>
           <h2 className="rl-heading" style={{ color: "var(--rl-cream)" }}>
-            Panel <span className="gold">Experts</span> of Rudralife
+            {titleLine} <span className="gold">{highlight}</span> {titleSuffix}
           </h2>
           <p className="rl-subtitle" style={{ margin: "0 auto" }}>
-            Meet the guiding minds behind Rudralife's mission — a panel of Vedic
-            experts bringing together ancient knowledge and deep compassion.
+            {subtitle}
           </p>
           <div className="rl-hint">Hover or tap to know more</div>
         </div>
         <div className="rl-expert-grid rl-reveal">
-          {experts.map((e, i) => (
+          {items.map((e, i) => (
             <div
-              key={e.name}
+              key={(e.name || "") + i}
               className={`rl-expert-card ${flipped === i ? "flipped" : ""}`}
               data-testid={`expert-card-${i}`}
               onClick={() => setFlipped(flipped === i ? null : i)}

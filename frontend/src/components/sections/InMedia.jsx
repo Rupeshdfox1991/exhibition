@@ -1,33 +1,39 @@
-import { mediaFeatures, mediaLogos } from "@/data/content";
+import { mediaFeatures as defaultFeatures, mediaLogos as defaultLogos } from "@/data/content";
 import { useSiteContent, pick } from "@/SiteContent";
 
 export default function InMedia() {
   const { content } = useSiteContent();
   if (pick(content, "section_visibility.media", true) === false) return null;
-  const logos = [...mediaLogos, ...mediaLogos];
+  const features = pick(content, "media.features", defaultFeatures);
+  const logosData = pick(content, "media.logos", defaultLogos);
+  const tag = pick(content, "media.tag", "In The Media");
+  const titleLine = pick(content, "media.title", "Featured &");
+  const highlight = pick(content, "media.title_highlight", "Recognised");
+  const subtitle = pick(content, "media.subtitle", "Rudralife has been featured by renowned personalities and leading media platforms for its authenticity and contribution to spiritual heritage.");
+  const featuredLabel = pick(content, "media.featured_label", "As Featured In");
+  const logos = [...logosData, ...logosData];
   return (
     <section className="rl-media" id="media" data-testid="media-section">
       <div className="rl-container">
         <div className="rl-media-head rl-reveal">
-          <span className="rl-tag">In The Media</span>
+          <span className="rl-tag">{tag}</span>
           <h2 className="rl-heading" style={{ color: "var(--rl-cream)" }}>
-            Featured & <span className="gold">Recognised</span>
+            {titleLine} <span className="gold">{highlight}</span>
           </h2>
           <p className="rl-subtitle" style={{ margin: "0 auto" }}>
-            Rudralife has been featured by renowned personalities and leading media platforms
-            for its authenticity and contribution to spiritual heritage.
+            {subtitle}
           </p>
         </div>
 
         <div className="rl-media-grid rl-reveal">
-          {mediaFeatures.map((m) => (
+          {features.map((m, i) => (
             <a
-              key={m.label}
+              key={(m.label || "") + i}
               href={m.url}
               target="_blank"
               rel="noopener noreferrer"
               className="rl-media-card"
-              data-testid={`media-${m.label.replace(/\s/g, "-").toLowerCase()}`}
+              data-testid={`media-${(m.label || `card-${i}`).replace(/\s/g, "-").toLowerCase()}`}
             >
               <div className="rl-media-img">
                 <img src={m.img} alt={m.label} loading="lazy" />
@@ -48,13 +54,13 @@ export default function InMedia() {
 
       <div className="rl-featured-in">
         <div className="rl-container">
-          <div className="rl-featured-label">As Featured In</div>
+          <div className="rl-featured-label">{featuredLabel}</div>
         </div>
         <div className="rl-scroll-track">
           <div className="rl-logo-row">
             {logos.map((l, i) => (
-              <div className="rl-logo-cell" key={i} data-testid={`media-logo-${l.id}-${i}`}>
-                <img src={l.img} alt={`Media logo ${l.id}`} loading="lazy" />
+              <div className="rl-logo-cell" key={i} data-testid={`media-logo-${l.id || i}-${i}`}>
+                <img src={l.img} alt={`Media logo ${l.id || i}`} loading="lazy" />
               </div>
             ))}
           </div>

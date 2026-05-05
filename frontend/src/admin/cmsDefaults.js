@@ -1,7 +1,10 @@
 // Default content seeded into Edit Page list editors when admin first opens the form,
 // so adding a 7th item doesn't wipe out the existing 6 defaults visible on the public site.
 // Mirrors the fallbacks used in /app/frontend/src/components/sections/*.jsx.
-import { faqs, aboutParagraphs, products } from "@/data/content";
+import {
+  faqs, aboutParagraphs, products, experts, seekers,
+  videoTestimonials, mediaFeatures, mediaLogos,
+} from "@/data/content";
 
 export const DEFAULT_FOCUS_POINTS = [
   { icon: "✨", title: "Special Exhibition Offers & Exclusive Discounts", body: "Enjoy exclusive exhibition-only discounts and limited-time offers specially curated for visitors." },
@@ -25,12 +28,37 @@ export const DEFAULT_STATS_SECTION = [
   { to: "1200", suffix: "+", label: "Total Exhibitions" },
 ];
 
-export const DEFAULT_FAQS = faqs.map((f) => ({ q: f.q, a: f.a }));
-export const DEFAULT_ABOUT_PARAGRAPHS = aboutParagraphs.map((p) => ({ text: p }));
-export const DEFAULT_PRODUCTS = products.map((p) => ({ img: p.img, name: p.name, benefit: p.benefit }));
+export const DEFAULT_NAV_MENU = [
+  { label: "About", target: "about" },
+  { label: "Exhibitions", target: "exhibitions" },
+  { label: "Collection", target: "collection" },
+  { label: "Experts", target: "experts" },
+  { label: "FAQ", target: "faq" },
+];
 
-// Returns a content object pre-seeded with defaults for any list that's missing.
-// Called once after fetch + cleared on Reset so admins always see editable defaults.
+export const DEFAULT_FOOTER_SOCIALS = [
+  { type: "instagram", url: "https://instagram.com/rudralife" },
+  { type: "facebook", url: "https://facebook.com/rudralife" },
+  { type: "youtube", url: "https://youtube.com/@rudralife" },
+  { type: "linkedin", url: "https://www.linkedin.com/company/rudralife" },
+];
+
+export const DEFAULT_FOOTER_ADDRESS = [
+  "Rudralife HQ",
+  "305, Kailas Plaza, V. B. Lane",
+  "Near Bank of Baroda, Ghatkopar East",
+  "Mumbai — 400 077, Maharashtra, India",
+];
+
+export const DEFAULT_FAQS = faqs.map((f) => ({ q: f.q, a: f.a }));
+export const DEFAULT_ABOUT_PARAGRAPHS = aboutParagraphs.map((p) => p);
+export const DEFAULT_PRODUCTS = products.map((p) => ({ img: p.img, name: p.name, benefit: p.benefit }));
+export const DEFAULT_EXPERTS = experts.map((e) => ({ img: e.img, name: e.name, title: e.title, bio: e.bio, social: e.social || "" }));
+export const DEFAULT_TRUSTED = seekers.map((s) => ({ img: s.img, name: s.name, role: s.role, link: s.link || "" }));
+export const DEFAULT_TESTIMONIALS = videoTestimonials.map((v) => ({ img: v.img, url: v.url, caption: v.caption || "Watch Story" }));
+export const DEFAULT_MEDIA_FEATURES = mediaFeatures.map((m) => ({ img: m.img, label: m.label, title: m.title, desc: m.desc, url: m.url }));
+export const DEFAULT_MEDIA_LOGOS = mediaLogos.map((l) => ({ img: l.img, link: "" }));
+
 export function seedListsWithDefaults(content) {
   const next = { ...(content || {}) };
 
@@ -50,7 +78,16 @@ export function seedListsWithDefaults(content) {
   ensure("collection.products", DEFAULT_PRODUCTS);
   ensure("faq.items", DEFAULT_FAQS);
   ensure("stats.items", DEFAULT_STATS_SECTION);
-  ensure("about.paragraphs", DEFAULT_ABOUT_PARAGRAPHS.map((p) => p.text));
+  ensure("about.paragraphs", DEFAULT_ABOUT_PARAGRAPHS);
+  ensure("navbar.menu", DEFAULT_NAV_MENU);
+  ensure("footer.socials", DEFAULT_FOOTER_SOCIALS);
+  ensure("footer.explore_links", DEFAULT_NAV_MENU);
+  ensure("footer.address_lines", DEFAULT_FOOTER_ADDRESS);
+  ensure("experts.items", DEFAULT_EXPERTS);
+  ensure("trusted.items", DEFAULT_TRUSTED);
+  ensure("testimonials.items", DEFAULT_TESTIMONIALS);
+  ensure("media.features", DEFAULT_MEDIA_FEATURES);
+  ensure("media.logos", DEFAULT_MEDIA_LOGOS);
 
   return next;
 }

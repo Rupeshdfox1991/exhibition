@@ -19,6 +19,19 @@ See `/app/memory/test_credentials.md`
 
 ## Implemented (cumulative, latest first)
 
+### Iteration 19 (Feb 2026) — Edit Page CMS Phase B-2 (full coverage)
+- **Per-row editing for ALL remaining sections**:
+  - **Header / Navigation**: logo upload + menu items list editor (label + scroll-target / external URL) + CTA button text. Public `Navbar.jsx` now reads everything from CMS.
+  - **Footer**: logo, brand tagline, hours, phone, email, WhatsApp, address-lines list editor, social links list editor (Instagram / Facebook / YouTube / LinkedIn / Twitter SVG icons map), explore-menu list editor, note, copyright, devotion line. Public `Footer.jsx` rewritten to consume all of it.
+  - **Panel Experts**: per-row image + name + designation + bio + social link.
+  - **Trusted Clients (Seekers)**: per-row image + name + role + optional link (17 defaults pre-seeded).
+  - **Video Testimonials**: per-row thumbnail + video URL + caption.
+  - **Media / Recognition**: featured cards (image+label+title+desc+url) + "As Featured In" logos (image + optional link).
+- **SEO / Meta Tags section** (new): Meta Title, URL Slug, Meta Description, OG Image. `SiteContentProvider` applies them to `<title>`, `<meta name="description">`, `og:title`, `og:description`, `og:image` whenever content updates.
+- **Form Labels section** expanded: Title, submit-button text, success+error messages, field placeholders for Name/Email/Phone, for both Register and Notify forms.
+- **All defaults (cmsDefaults.js) pre-seeded** into editors: 7 experts, 17 seekers, 4 testimonials, 3 media features, 9 logos, 5 nav-menu items, 4 socials, 4 address lines.
+- **Verified live**: edited an expert name → public site updated; SEO title saved → public `<title>` and `<meta description>` updated.
+
 ### Iteration 18 (Feb 2026) — Edit Page CMS (Phase B)
 - **Backend**: new `site_content` singleton collection.
   - Public `GET /api/site-content` (returns full tree or `{}`).

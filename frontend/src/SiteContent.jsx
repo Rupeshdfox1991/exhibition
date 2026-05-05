@@ -23,6 +23,36 @@ export function SiteContentProvider({ children }) {
     return () => { alive = false; };
   }, []);
 
+  // Apply SEO fields to <head>
+  useEffect(() => {
+    const seo = (content && content.seo) || {};
+    if (seo.title) document.title = seo.title;
+    const setMeta = (name, value) => {
+      if (!value) return;
+      let el = document.querySelector(`meta[name="${name}"]`);
+      if (!el) {
+        el = document.createElement("meta");
+        el.setAttribute("name", name);
+        document.head.appendChild(el);
+      }
+      el.setAttribute("content", value);
+    };
+    const setOg = (prop, value) => {
+      if (!value) return;
+      let el = document.querySelector(`meta[property="${prop}"]`);
+      if (!el) {
+        el = document.createElement("meta");
+        el.setAttribute("property", prop);
+        document.head.appendChild(el);
+      }
+      el.setAttribute("content", value);
+    };
+    setMeta("description", seo.description);
+    setOg("og:title", seo.title);
+    setOg("og:description", seo.description);
+    setOg("og:image", seo.og_image);
+  }, [content]);
+
   return <Ctx.Provider value={{ content, loading }}>{children}</Ctx.Provider>;
 }
 

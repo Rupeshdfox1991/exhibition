@@ -247,14 +247,18 @@ export default function EditPageTab() {
       {/* HEADER */}
       <Section title="🏛 Header / Navigation" sectionKey="navbar" defaultOpen>
         <ImageField label="Logo Image" value={get("navbar.logo")} onChange={(v) => setKey("navbar.logo", v)} helper={IMG_HELPERS.logo} testId="cms-navbar-logo" />
-        <div className="rl-admin-form-grid">
-          <TextField label="Menu — About" value={get("navbar.menu_about")} onChange={(v) => setKey("navbar.menu_about", v)} placeholder="About" testId="cms-menu-about" />
-          <TextField label="Menu — Exhibitions" value={get("navbar.menu_exhibitions")} onChange={(v) => setKey("navbar.menu_exhibitions", v)} placeholder="Exhibitions" testId="cms-menu-exhibitions" />
-          <TextField label="Menu — Collection" value={get("navbar.menu_collection")} onChange={(v) => setKey("navbar.menu_collection", v)} placeholder="Collection" testId="cms-menu-collection" />
-          <TextField label="Menu — Experts" value={get("navbar.menu_experts")} onChange={(v) => setKey("navbar.menu_experts", v)} placeholder="Experts" testId="cms-menu-experts" />
-          <TextField label="Menu — FAQ" value={get("navbar.menu_faq")} onChange={(v) => setKey("navbar.menu_faq", v)} placeholder="FAQ" testId="cms-menu-faq" />
-          <TextField label="CTA Button Text" value={get("navbar.cta")} onChange={(v) => setKey("navbar.cta", v)} placeholder="Register" testId="cms-navbar-cta" />
-        </div>
+        <TextField label="CTA Button Text" value={get("navbar.cta")} onChange={(v) => setKey("navbar.cta", v)} placeholder="Register" testId="cms-navbar-cta" />
+        <h4 className="rl-cms-sub-h">Menu Items (label + scroll target / URL)</h4>
+        <ListEditor
+          items={get("navbar.menu", [])}
+          setItems={(v) => setKey("navbar.menu", v)}
+          fields={[
+            { key: "label", label: "Label", placeholder: "About" },
+            { key: "target", label: "Section ID or Full URL", placeholder: "about · or https://..." },
+          ]}
+          addLabel="Add Menu Item"
+          testIdPrefix="cms-nav-menu"
+        />
       </Section>
 
       {/* BANNER / HERO */}
@@ -375,35 +379,123 @@ export default function EditPageTab() {
         visibility={get("section_visibility.experts", true)}
         onVisibilityChange={(v) => setKey("section_visibility.experts", v)}
       >
-        <p className="rl-admin-helper-text" style={{ marginBottom: 14 }}>
-          Toggle the section ON/OFF using the switch above. Detailed expert-by-expert editing (photos + bios) — coming in next iteration; for now, the experts displayed on the public site come from the seed list. Use the visibility toggle to hide the entire section.
-        </p>
+        <div className="rl-admin-form-grid">
+          <TextField label="Section Tag" value={get("experts.tag")} onChange={(v) => setKey("experts.tag", v)} placeholder="Guided by Masters" testId="cms-exp-tag" />
+          <TextField label="Title" value={get("experts.title")} onChange={(v) => setKey("experts.title", v)} placeholder="Panel" testId="cms-exp-title" />
+          <TextField label="Title Highlight" value={get("experts.title_highlight")} onChange={(v) => setKey("experts.title_highlight", v)} placeholder="Experts" testId="cms-exp-hl" />
+          <TextField label="Title Suffix" value={get("experts.title_suffix")} onChange={(v) => setKey("experts.title_suffix", v)} placeholder="of Rudralife" testId="cms-exp-suffix" />
+        </div>
+        <TextField label="Subtitle" value={get("experts.subtitle")} onChange={(v) => setKey("experts.subtitle", v)} placeholder="Meet the guiding minds…" multiline rows={2} testId="cms-exp-sub" />
+        <h4 className="rl-cms-sub-h">Experts (add / edit / delete)</h4>
+        <ListEditor
+          items={get("experts.items", [])}
+          setItems={(v) => setKey("experts.items", v)}
+          fields={[
+            { key: "img", label: "Photo", type: "image", helper: IMG_HELPERS.portrait },
+            { key: "name", label: "Name", placeholder: "Dr. Tanay Seetha" },
+            { key: "title", label: "Designation", placeholder: "Founder of Rudralife" },
+            { key: "bio", label: "Short Bio", placeholder: "Founder and visionary leader…", multiline: true, rows: 2 },
+            { key: "social", label: "Social / Profile URL (optional)", placeholder: "https://linkedin.com/..." },
+          ]}
+          addLabel="Add Expert"
+          testIdPrefix="cms-expert"
+        />
       </Section>
 
-      {/* TRUSTED / TESTIMONIALS / MEDIA — visibility only for now */}
+      {/* TRUSTED */}
       <Section
-        title="🤝 Trusted Clients (Logos Section)"
+        title="🤝 Trusted Clients (Logos / Faces strip)"
         sectionKey="trusted"
         visibility={get("section_visibility.trusted", true)}
         onVisibilityChange={(v) => setKey("section_visibility.trusted", v)}
       >
-        <p className="rl-admin-helper-text">Toggle the Trusted-by-Seekers logos strip on/off. Per-logo upload — next iteration.</p>
+        <div className="rl-admin-form-grid">
+          <TextField label="Section Tag" value={get("trusted.tag")} onChange={(v) => setKey("trusted.tag", v)} placeholder="Seekers Worldwide" testId="cms-trusted-tag" />
+          <TextField label="Title" value={get("trusted.title")} onChange={(v) => setKey("trusted.title", v)} placeholder="Trusted by" testId="cms-trusted-title" />
+          <TextField label="Title Highlight" value={get("trusted.title_highlight")} onChange={(v) => setKey("trusted.title_highlight", v)} placeholder="Seekers Worldwide" testId="cms-trusted-hl" />
+        </div>
+        <TextField label="Subtitle" value={get("trusted.subtitle")} onChange={(v) => setKey("trusted.subtitle", v)} placeholder="From spiritual practitioners…" multiline rows={2} testId="cms-trusted-sub" />
+        <h4 className="rl-cms-sub-h">Trusted Clients / Seekers</h4>
+        <ListEditor
+          items={get("trusted.items", [])}
+          setItems={(v) => setKey("trusted.items", v)}
+          fields={[
+            { key: "img", label: "Photo / Logo", type: "image", helper: IMG_HELPERS.square },
+            { key: "name", label: "Name", placeholder: "Milind Soman" },
+            { key: "role", label: "Role", placeholder: "Model" },
+            { key: "link", label: "Optional Link", placeholder: "https://..." },
+          ]}
+          addLabel="Add Trusted Client"
+          testIdPrefix="cms-trusted"
+        />
       </Section>
+
+      {/* VIDEO TESTIMONIALS */}
       <Section
         title="🎥 Video Testimonials"
         sectionKey="testimonials"
         visibility={get("section_visibility.testimonials", true)}
         onVisibilityChange={(v) => setKey("section_visibility.testimonials", v)}
       >
-        <p className="rl-admin-helper-text">Toggle the section on/off. Per-video upload + caption editor — next iteration.</p>
+        <div className="rl-admin-form-grid">
+          <TextField label="Section Tag" value={get("testimonials.tag")} onChange={(v) => setKey("testimonials.tag", v)} placeholder="Real Stories" testId="cms-testi-tag" />
+          <TextField label="Title" value={get("testimonials.title")} onChange={(v) => setKey("testimonials.title", v)} placeholder="What Our" testId="cms-testi-title" />
+          <TextField label="Title Highlight" value={get("testimonials.title_highlight")} onChange={(v) => setKey("testimonials.title_highlight", v)} placeholder="Clients Say" testId="cms-testi-hl" />
+        </div>
+        <TextField label="Subtitle" value={get("testimonials.subtitle")} onChange={(v) => setKey("testimonials.subtitle", v)} placeholder="Hear from those whose lives…" multiline rows={2} testId="cms-testi-sub" />
+        <h4 className="rl-cms-sub-h">Video Cards</h4>
+        <ListEditor
+          items={get("testimonials.items", [])}
+          setItems={(v) => setKey("testimonials.items", v)}
+          fields={[
+            { key: "img", label: "Thumbnail", type: "image", helper: IMG_HELPERS.square },
+            { key: "url", label: "Video URL (YouTube / Vimeo / direct)", placeholder: "https://youtu.be/..." },
+            { key: "caption", label: "Caption", placeholder: "Watch Story" },
+          ]}
+          addLabel="Add Video"
+          testIdPrefix="cms-testi"
+        />
       </Section>
+
+      {/* MEDIA / RECOGNITION */}
       <Section
         title="📰 Media / Recognition"
         sectionKey="media"
         visibility={get("section_visibility.media", true)}
         onVisibilityChange={(v) => setKey("section_visibility.media", v)}
       >
-        <p className="rl-admin-helper-text">Toggle the In-Media section on/off. Per-card upload + caption editor — next iteration.</p>
+        <div className="rl-admin-form-grid">
+          <TextField label="Section Tag" value={get("media.tag")} onChange={(v) => setKey("media.tag", v)} placeholder="In The Media" testId="cms-media-tag" />
+          <TextField label="Title" value={get("media.title")} onChange={(v) => setKey("media.title", v)} placeholder="Featured &" testId="cms-media-title" />
+          <TextField label="Title Highlight" value={get("media.title_highlight")} onChange={(v) => setKey("media.title_highlight", v)} placeholder="Recognised" testId="cms-media-hl" />
+          <TextField label="'Featured In' Strip Label" value={get("media.featured_label")} onChange={(v) => setKey("media.featured_label", v)} placeholder="As Featured In" testId="cms-media-featured" />
+        </div>
+        <TextField label="Subtitle" value={get("media.subtitle")} onChange={(v) => setKey("media.subtitle", v)} placeholder="Rudralife has been featured…" multiline rows={2} testId="cms-media-sub" />
+        <h4 className="rl-cms-sub-h">Featured Cards (image + title + link)</h4>
+        <ListEditor
+          items={get("media.features", [])}
+          setItems={(v) => setKey("media.features", v)}
+          fields={[
+            { key: "img", label: "Image", type: "image", helper: IMG_HELPERS.square },
+            { key: "label", label: "Outlet Label", placeholder: "Bombay Times" },
+            { key: "title", label: "Title", placeholder: "Bombay Times Feature" },
+            { key: "desc", label: "Description", placeholder: "Rudralife featured in…", multiline: true, rows: 2 },
+            { key: "url", label: "Article / Video URL", placeholder: "https://..." },
+          ]}
+          addLabel="Add Media Feature"
+          testIdPrefix="cms-media-feature"
+        />
+        <h4 className="rl-cms-sub-h">"As Featured In" Logos</h4>
+        <ListEditor
+          items={get("media.logos", [])}
+          setItems={(v) => setKey("media.logos", v)}
+          fields={[
+            { key: "img", label: "Logo", type: "image", helper: IMG_HELPERS.logo },
+            { key: "link", label: "Optional Link", placeholder: "https://..." },
+          ]}
+          addLabel="Add Logo"
+          testIdPrefix="cms-media-logo"
+        />
       </Section>
 
       {/* FAQ */}
@@ -470,21 +562,75 @@ export default function EditPageTab() {
 
       {/* FOOTER */}
       <Section title="📨 Footer / Contact" sectionKey="footer">
+        <ImageField label="Footer Logo (defaults to navbar logo)" value={get("footer.logo")} onChange={(v) => setKey("footer.logo", v)} helper={IMG_HELPERS.logo} testId="cms-footer-logo" />
+        <TextField label="Brand Tagline" value={get("footer.tagline")} onChange={(v) => setKey("footer.tagline", v)} placeholder="Sacred Rudraksha · Ancient Wisdom…" multiline rows={2} testId="cms-footer-tagline" />
         <div className="rl-admin-form-grid">
+          <TextField label="Hours" value={get("footer.hours")} onChange={(v) => setKey("footer.hours", v)} placeholder="Mon — Sat · 10 AM to 6 PM" testId="cms-footer-hours" />
+          <TextField label="Phone" value={get("footer.phone")} onChange={(v) => setKey("footer.phone", v)} placeholder="+91 22 2510 3030" testId="cms-footer-phone" />
           <TextField label="Email" value={get("footer.email")} onChange={(v) => setKey("footer.email", v)} placeholder="info@rudralife.com" testId="cms-footer-email" />
-          <TextField label="Phone" value={get("footer.phone")} onChange={(v) => setKey("footer.phone", v)} placeholder="+91 90000 00000" testId="cms-footer-phone" />
+          <TextField label="WhatsApp" value={get("footer.whatsapp")} onChange={(v) => setKey("footer.whatsapp", v)} placeholder="+91 72088 19922" testId="cms-footer-whatsapp" />
         </div>
-        <TextField label="Address" value={get("footer.address")} onChange={(v) => setKey("footer.address", v)} placeholder="Rudralife · Mumbai" multiline rows={2} testId="cms-footer-address" />
-        <TextField label="Tagline / Devotion Line" value={get("footer.tagline")} onChange={(v) => setKey("footer.tagline", v)} placeholder="Sacred Rudraksha · Ancient Wisdom" testId="cms-footer-tagline" />
+        <h4 className="rl-cms-sub-h">Address Lines</h4>
+        <ListEditor
+          items={(get("footer.address_lines", []) || []).map((p) => (typeof p === "string" ? { text: p } : p))}
+          setItems={(v) => setKey("footer.address_lines", v.map((x) => x.text || ""))}
+          fields={[{ key: "text", label: "Line", placeholder: "305, Kailas Plaza…" }]}
+          addLabel="Add Line"
+          testIdPrefix="cms-footer-addr"
+        />
+        <h4 className="rl-cms-sub-h">Social Links</h4>
+        <ListEditor
+          items={get("footer.socials", [])}
+          setItems={(v) => setKey("footer.socials", v)}
+          fields={[
+            { key: "type", label: "Platform (instagram / facebook / youtube / linkedin / twitter)", placeholder: "instagram" },
+            { key: "url", label: "Profile URL", placeholder: "https://instagram.com/rudralife" },
+          ]}
+          addLabel="Add Social Link"
+          testIdPrefix="cms-footer-social"
+        />
+        <h4 className="rl-cms-sub-h">Footer Explore Menu</h4>
+        <ListEditor
+          items={get("footer.explore_links", [])}
+          setItems={(v) => setKey("footer.explore_links", v)}
+          fields={[
+            { key: "label", label: "Label", placeholder: "About" },
+            { key: "target", label: "Section ID or URL", placeholder: "about" },
+          ]}
+          addLabel="Add Link"
+          testIdPrefix="cms-footer-explore"
+        />
+        <TextField label="Note (small text under contact)" value={get("footer.note")} onChange={(v) => setKey("footer.note", v)} placeholder="Private consultations available…" multiline rows={2} testId="cms-footer-note" />
+        <div className="rl-admin-form-grid">
+          <TextField label="Copyright" value={get("footer.copyright")} onChange={(v) => setKey("footer.copyright", v)} placeholder="© 2026 Rudralife. All Rights Reserved." testId="cms-footer-copyright" />
+          <TextField label="Devotion Line" value={get("footer.devotion")} onChange={(v) => setKey("footer.devotion", v)} placeholder="Crafted with devotion for seekers worldwide 🙏" testId="cms-footer-devotion" />
+        </div>
+      </Section>
+
+      {/* SEO */}
+      <Section title="🔍 SEO / Meta Tags" sectionKey="seo">
+        <div className="rl-admin-form-grid">
+          <TextField label="Meta Title (≤ 60 chars)" value={get("seo.title")} onChange={(v) => setKey("seo.title", v)} placeholder="Rudralife · Authentic Rudraksha Exhibitions Worldwide" testId="cms-seo-title" />
+          <TextField label="URL Slug (path)" value={get("seo.slug")} onChange={(v) => setKey("seo.slug", v)} placeholder="/" testId="cms-seo-slug" />
+        </div>
+        <TextField label="Meta Description (≤ 160 chars)" value={get("seo.description")} onChange={(v) => setKey("seo.description", v)} placeholder="Lab-certified Rudraksha guidance from Mumbai since 2001…" multiline rows={2} testId="cms-seo-desc" />
+        <TextField label="Open Graph / Social Share Image" value={get("seo.og_image")} onChange={(v) => setKey("seo.og_image", v)} placeholder="https://… (1200×630 recommended)" testId="cms-seo-og" />
+        <p className="rl-admin-helper-text">SEO fields are saved to the CMS doc; they automatically apply to &lt;title&gt; and &lt;meta&gt; tags after refresh.</p>
       </Section>
 
       {/* FORMS */}
-      <Section title="📝 Form Labels" sectionKey="forms">
+      <Section title="📝 Form Labels & Messages" sectionKey="forms">
         <div className="rl-admin-form-grid">
           <TextField label="Register Form Title" value={get("forms.register_title")} onChange={(v) => setKey("forms.register_title", v)} placeholder="Register to Visit" testId="cms-forms-reg-title" />
           <TextField label="Register Submit Button" value={get("forms.register_btn")} onChange={(v) => setKey("forms.register_btn", v)} placeholder="Submit Registration" testId="cms-forms-reg-btn" />
+          <TextField label="Register Success Message" value={get("forms.register_success")} onChange={(v) => setKey("forms.register_success", v)} placeholder="Registration Confirmed" testId="cms-forms-reg-success" />
+          <TextField label="Register Error Message" value={get("forms.register_error")} onChange={(v) => setKey("forms.register_error", v)} placeholder="Something went wrong. Please try again." testId="cms-forms-reg-error" />
           <TextField label="Notify Form Title" value={get("forms.notify_title")} onChange={(v) => setKey("forms.notify_title", v)} placeholder="Notify Me When You Visit" testId="cms-forms-notify-title" />
           <TextField label="Notify Submit Button" value={get("forms.notify_btn")} onChange={(v) => setKey("forms.notify_btn", v)} placeholder="Notify Me →" testId="cms-forms-notify-btn" />
+          <TextField label="Notify Success Message" value={get("forms.notify_success")} onChange={(v) => setKey("forms.notify_success", v)} placeholder="You're on the List!" testId="cms-forms-notify-success" />
+          <TextField label="Field Placeholder — Name" value={get("forms.ph_name")} onChange={(v) => setKey("forms.ph_name", v)} placeholder="e.g. Anjali Mehta" testId="cms-forms-ph-name" />
+          <TextField label="Field Placeholder — Email" value={get("forms.ph_email")} onChange={(v) => setKey("forms.ph_email", v)} placeholder="you@example.com" testId="cms-forms-ph-email" />
+          <TextField label="Field Placeholder — Phone" value={get("forms.ph_phone")} onChange={(v) => setKey("forms.ph_phone", v)} placeholder="98xxxxxxxx" testId="cms-forms-ph-phone" />
         </div>
       </Section>
 

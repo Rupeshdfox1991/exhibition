@@ -1,9 +1,10 @@
-import { seekers } from "@/data/content";
+import { seekers as defaultSeekers } from "@/data/content";
 import { useSiteContent, pick } from "@/SiteContent";
 
 function Card({ s }) {
+  const safeName = (s.name || "seeker").replace(/[^a-z0-9]/gi, "-").toLowerCase();
   return (
-    <div className="rl-seeker-card" data-testid={`seeker-${s.name.replace(/[^a-z0-9]/gi, "-").toLowerCase()}`}>
+    <div className="rl-seeker-card" data-testid={`seeker-${safeName}`}>
       <div className="rl-seeker-photo">
         <img src={s.img} alt={s.name} loading="lazy" />
       </div>
@@ -18,19 +19,24 @@ function Card({ s }) {
 export default function SeekersWorldwide() {
   const { content } = useSiteContent();
   if (pick(content, "section_visibility.trusted", true) === false) return null;
-  const half = Math.ceil(seekers.length / 2);
-  const row1 = [...seekers.slice(0, half), ...seekers.slice(0, half)];
-  const row2 = [...seekers.slice(half), ...seekers.slice(half)];
+  const items = pick(content, "trusted.items", defaultSeekers);
+  const tag = pick(content, "trusted.tag", "Seekers Worldwide");
+  const titleLine = pick(content, "trusted.title", "Trusted by");
+  const highlight = pick(content, "trusted.title_highlight", "Seekers Worldwide");
+  const subtitle = pick(content, "trusted.subtitle", "From spiritual practitioners to professionals and leaders, Rudralife serves a diverse global community.");
+  const half = Math.ceil(items.length / 2);
+  const row1 = [...items.slice(0, half), ...items.slice(0, half)];
+  const row2 = [...items.slice(half), ...items.slice(half)];
 
   return (
     <section className="rl-seekers" id="seekers" data-testid="seekers-section">
       <div className="rl-container rl-seekers-head rl-reveal">
-        <span className="rl-tag">Seekers Worldwide</span>
+        <span className="rl-tag">{tag}</span>
         <h2 className="rl-heading" style={{ color: "var(--rl-bg-deep)" }}>
-          Trusted by <span className="gold">Seekers Worldwide</span>
+          {titleLine} <span className="gold">{highlight}</span>
         </h2>
         <p className="rl-subtitle rl-subtitle-dark" style={{ margin: "0 auto" }}>
-          From spiritual practitioners to professionals and leaders, Rudralife serves a diverse global community.
+          {subtitle}
         </p>
       </div>
       <div className="rl-scroll-track">
