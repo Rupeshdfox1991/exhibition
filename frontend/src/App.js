@@ -27,9 +27,33 @@ import { SiteContentProvider } from "@/SiteContent";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
-// Public exhibitions context — fetched once and shared by Exhibitions + RegistrationModal
+// Public exhibitions context — fetched once and shared by ALL routes (Landing + standalone exhibition pages + admin previews).
 export const ExhibitionsContext = createContext({ exhibitions: [], loading: true });
 export const useExhibitions = () => useContext(ExhibitionsContext);
+
+function ExhibitionsProvider({ children }) {
+  const [exhibitions, setExhibitions] = useState([]);
+  const [loading, setLoading] = useState(true);
+  useEffect(() => {
+    let alive = true;
+    const fetchEx = async () => {
+      try {
+        const { data } = await axios.get(`${API}/exhibitions`);
+        if (alive) setExhibitions(Array.isArray(data) ? data : []);
+      } catch {
+        if (alive) setExhibitions([]);
+      } finally { if (alive) setLoading(false); }
+    };
+    fetchEx();
+    const t = setInterval(fetchEx, 30000);
+    return () => { alive = false; clearInterval(t); };
+  }, []);
+  return (
+    <ExhibitionsContext.Provider value={{ exhibitions, loading }}>
+      {children}
+    </ExhibitionsContext.Provider>
+  );
+}
 
 function useReveal() {
   useEffect(() => {
@@ -58,25 +82,9 @@ function useReveal() {
 
 function Landing() {
   const navigate = useNavigate();
-  const [exhibitions, setExhibitions] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const { exhibitions } = useExhibitions();
 
   useReveal();
-
-  useEffect(() => {
-    let alive = true;
-    const fetchEx = async () => {
-      try {
-        const { data } = await axios.get(`${API}/exhibitions`);
-        if (alive) setExhibitions(Array.isArray(data) ? data : []);
-      } catch (e) {
-        if (alive) setExhibitions([]);
-      } finally { if (alive) setLoading(false); }
-    };
-    fetchEx();
-    const t = setInterval(fetchEx, 30000);
-    return () => { alive = false; clearInterval(t); };
-  }, []);
 
   // Per-exhibition deep linking — clicking a city navigates to /exhibition/:slug
   // which renders the standalone ExhibitionPage (no nav, no other sections).
@@ -96,32 +104,30 @@ function Landing() {
   };
 
   return (
-    <ExhibitionsContext.Provider value={{ exhibitions, loading }}>
-      <div className="App">
-        <Navbar onRegister={scrollToExhibitions} />
-        <Hero
-          onRegister={scrollToExhibitions}
-          onKnowMore={scrollToExhibitions}
-        />
-        <Exhibitions onCityClick={handleCityClick} />
-        <WhyVisit />
-        <Footprint />
-        <Collection />
-        <Experts />
-        <SeekersWorldwide />
-        <VideoTestimonials />
-        <InMedia />
-        <Stats />
-        <About />
-        <FAQ />
-        <Footer
-          onNav={(id) => {
-            const el = document.getElementById(id);
-            if (el) el.scrollIntoView({ behavior: "smooth" });
-          }}
-        />
-      </div>
-    </ExhibitionsContext.Provider>
+    <div className="App">
+      <Navbar onRegister={scrollToExhibitions} />
+      <Hero
+        onRegister={scrollToExhibitions}
+        onKnowMore={scrollToExhibitions}
+      />
+      <Exhibitions onCityClick={handleCityClick} />
+      <WhyVisit />
+      <Footprint />
+      <Collection />
+      <Experts />
+      <SeekersWorldwide />
+      <VideoTestimonials />
+      <InMedia />
+      <Stats />
+      <About />
+      <FAQ />
+      <Footer
+        onNav={(id) => {
+          const el = document.getElementById(id);
+          if (el) el.scrollIntoView({ behavior: "smooth" });
+        }}
+      />
+    </div>
   );
 }
 
@@ -129,19 +135,14 @@ export default function App() {
   return (
     <BrowserRouter>
       <SiteContentProvider>
-        <Routes>
-          <Route path="/admin/login" element={<AdminLogin />} />
-          <Route path="/admin" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
-          {/* Standalone per-exhibition pages — ad-friendly shareable URLs.
-              /exhibition/:slug                    → event details + register CTA (live) or notify form (soon)
-              /exhibition/:slug/register           → registration form step 1
-              /exhibition/:slug/register/contact   → step 2
-              /exhibition/:slug/register/details   → step 3
-              /exhibition/:slug/thank-you          → confirmation
-              /exhibition/:slug/coming-soon        → notify-me form */}
-          <Route path="/exhibition/:slug/*" element={<ExhibitionPage />} />
-          <Route path="*" element={<Landing />} />
-        </Routes>
+        <ExhibitionsProvider>
+          <Routes>
+            <Route path="/admin/login" element={<AdminLogin />} />
+            <Route path="/admin" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
+            <Route path="/exhibition/:slug/*" element={<ExhibitionPage />} />
+            <Route path="*" element={<Landing />} />
+          </Routes>
+        </ExhibitionsProvider>
       </SiteContentProvider>
     </BrowserRouter>
   );

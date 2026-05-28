@@ -66,7 +66,7 @@ export default function RegistrationModal({ exhibition, onClose, urlSync = false
     phone: "",
     profession: "",
     country: defaultCountry,
-    exhibition_id: exhibition?.id || (liveList[0]?.id ?? ""),
+    exhibition_id: (exhibition?.status === "live" ? exhibition?.id : "") || (liveList[0]?.id ?? ""),
     visit_date: "",   // start empty so the "Select…" placeholder shows
     message: "",
   });
@@ -74,10 +74,12 @@ export default function RegistrationModal({ exhibition, onClose, urlSync = false
   // If live list loads after modal mounts, set the default exhibition id
   useEffect(() => {
     if (!form.exhibition_id && liveList.length > 0) {
-      setForm((f) => ({ ...f, exhibition_id: liveList[0].id }));
+      // Prefer URL-bound exhibition if it's live, else first live in list
+      const fromUrl = exhibition?.status === "live" ? exhibition.id : null;
+      setForm((f) => ({ ...f, exhibition_id: fromUrl || liveList[0].id }));
     }
     // eslint-disable-next-line
-  }, [liveList.length]);
+  }, [liveList.length, exhibition?.id]);
 
   const currentExhibition = useMemo(
     () => allCities.find((c) => c.id === form.exhibition_id) || exhibition || liveList[0],
@@ -291,10 +293,23 @@ export default function RegistrationModal({ exhibition, onClose, urlSync = false
                       value={form.exhibition_id}
                       onChange={(e) => update("exhibition_id", e.target.value)}
                     >
+                      {liveList.length === 0 && (
+                        <option value="">No live exhibitions right now</option>
+                      )}
                       {liveList.map((c) => (
-                        <option key={c.id} value={c.id}>{c.name} — {c.dates}</option>
+                        <option key={c.id} value={c.id}>
+                          {c.name} — {c.dates}{c.timings ? ` · ${c.timings}` : ""}
+                        </option>
                       ))}
                     </select>
+                    {currentExhibition && (
+                      <div className="rl-form-meta-line" style={{ marginTop: 8 }} data-testid="exhibition-meta-line">
+                        <span className="rl-form-meta-strong">📅 {currentExhibition.dates}</span>
+                        {currentExhibition.timings && <span>🕒 {currentExhibition.timings}</span>}
+                        {currentExhibition.venue && <span>📍 {currentExhibition.venue}</span>}
+                      </div>
+                    )}
+                    {errors.exhibition_id && <div className="rl-field-err">{errors.exhibition_id}</div>}
                   </div>
                   <div className="rl-field">
                     <label>Choose Visit Date</label>

@@ -2574,3 +2574,25 @@
   cursor: default;
 }
 
+
+
+/* Form meta line — under Select Exhibition (dates · timings · venue) */
+.rl-form-meta-line {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  padding: 10px 14px;
+  background: rgba(201, 146, 10, 0.08);
+  border-left: 2px solid var(--rl-gold);
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  color: var(--rl-bg-deep);
+  line-height: 1.5;
+}
+.rl-form-meta-line .rl-form-meta-strong {
+  font-weight: 700;
+  color: #6B3A10;
+}
+@media (max-width: 540px) {
+  .rl-form-meta-line { font-size: 12px; gap: 6px 12px; padding: 8px 12px; }
+}
