@@ -19,6 +19,25 @@ See `/app/memory/test_credentials.md`
 
 ## Implemented (cumulative, latest first)
 
+
+### Iteration 21 (Feb 2026) — Combined grid, per-exhibition URLs, profession, dial-by-country
+- **Removed Domestic / International tabs**. Single combined `.rl-city-grid` shows all exhibitions sorted by status (live first) → type → order. International cards just carry a `🌐 International` badge.
+- **Per-exhibition deep linkable URLs** (share-friendly for ad campaigns):
+  - `/exhibition/:slug` → standalone event-details modal (live) or notify form (soon) on a dark ॐ-branded background, NO landing-page sections at all.
+  - `/exhibition/:slug/register` → form step 1
+  - `/exhibition/:slug/register/contact` → step 2
+  - `/exhibition/:slug/register/details` → step 3
+  - `/exhibition/:slug/thank-you` → confirmation page
+  - `/exhibition/:slug/coming-soon` → notify-me form
+  - URL changes automatically as the user advances; refreshing any step keeps state.
+- **Backend** new `slug` + `country_code` + `dial_code` fields on Exhibition. Auto-generated unique slugs on create/update. `GET /api/exhibitions/by-slug/{slug}`. Backfill migration on startup for legacy docs.
+- **Phone dial code auto-defaults per exhibition** — Pune (IN) → +91, London (GB) → +44, Dubai (AE) → +971, US → +1, Singapore → +65, etc.
+- **"Your City" replaced with "Profession"** (free-text). Legacy `city` column kept for back-compat.
+- **Visit-date dropdown** now starts with `Select a date…` placeholder; populated from the exhibition's date range.
+- **India map pin** is no longer clickable — clean static label.
+- **Experts subtitle**: "Step into an exclusive discussion with our expert panel and unlock ancient Rudraksha wisdom shaped for the modern seeker."
+- **Admin Dashboard**: Exhibition form gets `slug`, `country_code` selector (with dial-code auto-sync), `dial_code` fields. Leads table & Excel export show **Profession** column.
+
 ### Iteration 19 (Feb 2026) — Edit Page CMS Phase B-2 (full coverage)
 - **Per-row editing for ALL remaining sections**:
   - **Header / Navigation**: logo upload + menu items list editor (label + scroll-target / external URL) + CTA button text. Public `Navbar.jsx` now reads everything from CMS.

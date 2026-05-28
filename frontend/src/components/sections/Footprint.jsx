@@ -1,8 +1,6 @@
 import { useState, useMemo } from "react";
 import { useExhibitions } from "@/App";
-import { useSiteContent, pick } from "@/SiteContent";
-
-const DEFAULT_MAP_URL =
+import { useSiteContent, pick } from "@/SiteContent";const DEFAULT_MAP_URL =
   "https://customer-assets.emergentagent.com/job_sacred-rudraksha-hub/artifacts/dghkanxm_image.png";
 
 /*
@@ -19,7 +17,6 @@ const pins = [
 ];
 
 export default function Footprint() {
-  const [openIndia, setOpenIndia] = useState(false);
   const { exhibitions } = useExhibitions();
   const { content } = useSiteContent();
   const tag = pick(content, "global_presence.tag", "Our Footprint");
@@ -27,7 +24,6 @@ export default function Footprint() {
   const highlight = pick(content, "global_presence.title_highlight", "Presence");
   const subtitle = pick(content, "global_presence.subtitle", "Five countries. One unbroken tradition. Hosted in five-star venues and private sanctums worldwide.");
   const MAP_URL = pick(content, "global_presence.map_image", DEFAULT_MAP_URL);
-  const domesticCities = useMemo(() => exhibitions.filter((e) => e.type === "domestic"), [exhibitions]);
   if (pick(content, "section_visibility.global_presence", true) === false) return null;
 
   return (
@@ -52,55 +48,25 @@ export default function Footprint() {
               loading="lazy"
             />
             {pins.map((p) => {
-              const isIndia = p.id === "in";
               return (
-                <button
+                <span
                   key={p.id}
-                  type="button"
-                  className={`rl-worldmap-pin ${isIndia && openIndia ? "active" : ""} ${isIndia ? "clickable" : ""}`}
+                  className="rl-worldmap-pin static"
                   style={{ left: `${p.x}%`, top: `${p.y}%` }}
-                  onClick={() => { if (isIndia) setOpenIndia(!openIndia); }}
                   data-testid={`worldmap-pin-${p.id}`}
                   aria-label={p.name}
                 >
                   <span className="rl-worldmap-pulse" />
                   <span className="rl-worldmap-dot" />
-                  <span className="rl-worldmap-label">
-                    {p.name}{isIndia ? (openIndia ? " · Hide" : " · Tap") : ""}
-                  </span>
-                </button>
+                  <span className="rl-worldmap-label">{p.name}</span>
+                </span>
               );
             })}
           </div>
         </div>
 
-        {openIndia && (
-          <div className="rl-country-expand" data-testid="india-cities-expand">
-            <div className="rl-country-expand-head">
-              <span>🇮🇳 India · Domestic Exhibition Cities</span>
-              <span>{domesticCities.length} Cities</span>
-            </div>
-            <div className="rl-city-chip-grid">
-              {domesticCities.map((city) => (
-                <div
-                  key={city.id}
-                  className={`rl-city-chip ${city.status === "live" ? "live" : ""}`}
-                  data-testid={`chip-${city.id}`}
-                >
-                  <span className="rl-city-chip-dot" />
-                  <span className="rl-city-chip-name">{city.name}</span>
-                  {city.status === "live" && (
-                    <span className="rl-city-chip-badge">Live</span>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
         <div className="rl-map-legend" style={{ marginTop: 36 }}>
           <div className="item"><span className="sw" style={{ background: "var(--rl-gold)" }} /> Exhibition Presence</div>
-          <div className="item"><span className="sw" style={{ background: "var(--rl-red)" }} /> Live Now (in India)</div>
           <div className="item"><span className="sw" style={{ background: "rgba(253,248,240,0.5)" }} /> Upcoming Cities</div>
         </div>
       </div>

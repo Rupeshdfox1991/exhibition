@@ -10,7 +10,7 @@ export default function Experts() {
   const titleLine = pick(content, "experts.title", "Panel");
   const highlight = pick(content, "experts.title_highlight", "Experts");
   const titleSuffix = pick(content, "experts.title_suffix", "of Rudralife");
-  const subtitle = pick(content, "experts.subtitle", "Meet the guiding minds behind Rudralife's mission — a panel of Vedic experts bringing together ancient knowledge and deep compassion.");
+  const subtitle = pick(content, "experts.subtitle", "Step into an exclusive discussion with our expert panel and unlock ancient Rudraksha wisdom shaped for the modern seeker.");
   if (pick(content, "section_visibility.experts", true) === false) return null;
   return (
     <section className="rl-experts" id="experts" data-testid="experts-section">

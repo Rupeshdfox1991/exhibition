@@ -96,7 +96,7 @@ function LeadsTab({ exhibitions }) {
               <th>Name</th>
               <th>Email</th>
               <th>Phone</th>
-              <th>City</th>
+              <th>Profession</th>
               <th>Country</th>
               <th>Exhibition</th>
               <th>Visit Date</th>
@@ -113,7 +113,7 @@ function LeadsTab({ exhibitions }) {
                 <td>{r.full_name}</td>
                 <td>{r.email}</td>
                 <td>{r.dial_code} {r.phone}</td>
-                <td>{r.city}</td>
+                <td>{r.profession || r.city || "—"}</td>
                 <td>{r.country}</td>
                 <td>{r.exhibition_city}</td>
                 <td>{r.visit_date}</td>
@@ -342,7 +342,7 @@ function NotifyCitiesTab() {
 
 // ─────────── Exhibitions Tab ───────────
 function emptyExhibition() {
-  return { name: "", type: "domestic", image: "", status: "soon", start_date: "", end_date: "", timings: "10:00 AM to 8:00 PM (Sunday Open)", venue: "", address: "", order: 50 };
+  return { name: "", type: "domestic", image: "", status: "soon", start_date: "", end_date: "", timings: "10:00 AM to 8:00 PM (Sunday Open)", venue: "", address: "", order: 50, slug: "", country_code: "IN", dial_code: "+91" };
 }
 
 function ExhibitionsTab({ exhibitions, reload }) {
@@ -359,6 +359,9 @@ function ExhibitionsTab({ exhibitions, reload }) {
       start_date: ex.start_date || "", end_date: ex.end_date || "",
       timings: ex.timings || "", venue: ex.venue || "", address: ex.address || "",
       order: ex.order ?? 50,
+      slug: ex.slug || "",
+      country_code: ex.country_code || "IN",
+      dial_code: ex.dial_code || "+91",
     });
     setEditing(ex);
   };
@@ -422,6 +425,16 @@ function ExhibitionsTab({ exhibitions, reload }) {
           <div className="rl-admin-form-grid">
             <div className="rl-field"><label>Name *</label><input value={form.name} onChange={(e) => update("name", e.target.value)} data-testid="exh-name" /></div>
             <div className="rl-field">
+              <label>URL Slug (auto-generated from name if left blank)</label>
+              <input
+                value={form.slug}
+                onChange={(e) => update("slug", e.target.value.toLowerCase().replace(/[^a-z0-9-]+/g, "-"))}
+                placeholder="e.g. pune"
+                data-testid="exh-slug"
+              />
+              <div className="rl-admin-helper-text">Public URL: /exhibition/<strong>{form.slug || "(auto)"}</strong></div>
+            </div>
+            <div className="rl-field">
               <label>Type</label>
               <select value={form.type} onChange={(e) => update("type", e.target.value)} data-testid="exh-type">
                 <option value="domestic">Domestic</option>
@@ -434,6 +447,36 @@ function ExhibitionsTab({ exhibitions, reload }) {
                 <option value="live">Live Now</option>
                 <option value="soon">Coming Soon</option>
               </select>
+            </div>
+            <div className="rl-field">
+              <label>Country (for forms)</label>
+              <select
+                value={form.country_code}
+                onChange={(e) => {
+                  const code = e.target.value;
+                  const dialMap = { IN: "+91", US: "+1", GB: "+44", AE: "+971", SG: "+65", MY: "+60", CA: "+1", AU: "+61", QA: "+974", OM: "+968", TH: "+66", LK: "+94", NP: "+977", BD: "+880" };
+                  update("country_code", code);
+                  update("dial_code", dialMap[code] || form.dial_code);
+                }}
+                data-testid="exh-country-code"
+              >
+                <option value="IN">🇮🇳 India</option>
+                <option value="US">🇺🇸 United States</option>
+                <option value="GB">🇬🇧 United Kingdom</option>
+                <option value="AE">🇦🇪 UAE (Dubai)</option>
+                <option value="SG">🇸🇬 Singapore</option>
+                <option value="MY">🇲🇾 Malaysia</option>
+                <option value="CA">🇨🇦 Canada</option>
+                <option value="AU">🇦🇺 Australia</option>
+                <option value="QA">🇶🇦 Qatar</option>
+                <option value="OM">🇴🇲 Oman</option>
+                <option value="TH">🇹🇭 Thailand</option>
+              </select>
+            </div>
+            <div className="rl-field">
+              <label>Default Phone Dial Code</label>
+              <input value={form.dial_code} onChange={(e) => update("dial_code", e.target.value)} placeholder="+91" data-testid="exh-dial-code" />
+              <div className="rl-admin-helper-text">Auto-fills phone field on registration form for this exhibition.</div>
             </div>
             <div className="rl-field" style={{ gridColumn: "1 / -1" }}>
               <label>Exhibition Image</label>

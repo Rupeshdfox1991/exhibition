@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import axios from "axios";
+import { useNavigate, useLocation } from "react-router-dom";
 import { countries } from "@/data/countries";
 import { useExhibitions } from "@/App";
 import { adaptExhibition } from "@/components/sections/Exhibitions";
@@ -7,7 +8,7 @@ import { adaptExhibition } from "@/components/sections/Exhibitions";
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
-// Generate "16 April 2026 (Thursday)" style date options between start & end ISO dates
+// Generate date options with "Select a date…" placeholder
 function getDateOptions(dateRange) {
   if (!dateRange) return [];
   const dates = [];
@@ -22,25 +23,51 @@ function getDateOptions(dateRange) {
   return dates;
 }
 
-const liveExhibitions = (exhibitions) => exhibitions.filter((c) => c.status === "live");
+// Country code → dial code lookup (used when admin set country_code but not dial_code)
+const DIAL_BY_COUNTRY = {
+  IN: "+91", US: "+1", GB: "+44", AE: "+971", SG: "+65", MY: "+60", CA: "+1",
+  AU: "+61", QA: "+974", OM: "+968", TH: "+66", LK: "+94", NP: "+977", BD: "+880",
+};
 
-export default function RegistrationModal({ exhibition, onClose }) {
+export default function RegistrationModal({ exhibition, onClose, urlSync = false, slug = "", onSubmitted }) {
+  const navigate = useNavigate();
+  const loc = useLocation();
   const { exhibitions: rawExhibitions } = useExhibitions();
   const allCities = useMemo(() => rawExhibitions.map(adaptExhibition), [rawExhibitions]);
-  const liveList = useMemo(() => liveExhibitions(allCities), [allCities]);
-  const [step, setStep] = useState(1);
+  const liveList = useMemo(() => allCities.filter((c) => c.status === "live"), [allCities]);
+
+  // Determine starting step from URL when urlSync is on (refresh-safe deep links)
+  const stepFromUrl = () => {
+    if (!urlSync) return 1;
+    const p = loc.pathname;
+    if (p.endsWith("/register/contact")) return 2;
+    if (p.endsWith("/register/details")) return 3;
+    return 1;
+  };
+  const [step, setStep] = useState(stepFromUrl());
+
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
   const [errors, setErrors] = useState({});
+
+  // Auto-fill dial code + country from exhibition (admin-controlled per exhibition)
+  const defaultDial = exhibition?.dial_code
+    || DIAL_BY_COUNTRY[exhibition?.country_code]
+    || (exhibition?.type === "international" ? "+1" : "+91");
+  const defaultCountry = exhibition?.country_code
+    ? (countries.find((c) => c.code === exhibition.country_code)?.name)
+      || (exhibition?.type === "international" ? "United States" : "India")
+    : "India";
+
   const [form, setForm] = useState({
     full_name: "",
     email: "",
-    dial_code: "+91",
+    dial_code: defaultDial,
     phone: "",
-    city: "",
-    country: "India",
+    profession: "",
+    country: defaultCountry,
     exhibition_id: exhibition?.id || (liveList[0]?.id ?? ""),
-    visit_date: "",
+    visit_date: "",   // start empty so the "Select…" placeholder shows
     message: "",
   });
 
@@ -56,14 +83,19 @@ export default function RegistrationModal({ exhibition, onClose }) {
     () => allCities.find((c) => c.id === form.exhibition_id) || exhibition || liveList[0],
     [form.exhibition_id, exhibition, allCities, liveList]
   );
-  const dateOptions = useMemo(() => getDateOptions(currentExhibition?.dateRange), [currentExhibition]);
 
-  // Auto-select first available date when exhibition changes
+  // When the selected exhibition changes, auto-adjust dial code + country
   useEffect(() => {
-    if (dateOptions.length > 0 && !dateOptions.find((d) => d.value === form.visit_date)) {
-      setForm((f) => ({ ...f, visit_date: dateOptions[0].value }));
-    }
-  }, [dateOptions]); // eslint-disable-line
+    if (!currentExhibition) return;
+    const d = currentExhibition.dial_code
+      || DIAL_BY_COUNTRY[currentExhibition.country_code]
+      || (currentExhibition.type === "international" ? "+1" : "+91");
+    const c = (countries.find((c) => c.code === currentExhibition.country_code)?.name)
+      || (currentExhibition.type === "international" ? "United States" : "India");
+    setForm((f) => ({ ...f, dial_code: d, country: c }));
+  }, [currentExhibition?.id]); // eslint-disable-line
+
+  const dateOptions = useMemo(() => getDateOptions(currentExhibition?.dateRange), [currentExhibition]);
 
   useEffect(() => {
     const onKey = (e) => { if (e.key === "Escape") onClose(); };
@@ -77,6 +109,17 @@ export default function RegistrationModal({ exhibition, onClose }) {
 
   const update = (k, v) => setForm((f) => ({ ...f, [k]: v }));
 
+  // Sync step → URL when in url-sync standalone mode
+  const setStepAndUrl = (s) => {
+    setStep(s);
+    if (!urlSync || !slug) return;
+    const path =
+      s === 1 ? `/exhibition/${slug}/register`
+      : s === 2 ? `/exhibition/${slug}/register/contact`
+      : `/exhibition/${slug}/register/details`;
+    if (loc.pathname !== path) navigate(path, { replace: false });
+  };
+
   const validateStep = (s) => {
     const e = {};
     if (s === 1) {
@@ -87,19 +130,19 @@ export default function RegistrationModal({ exhibition, onClose }) {
     if (s === 2) {
       if (!form.phone.trim()) e.phone = "Please enter phone number";
       else if (!/^\d{6,15}$/.test(form.phone.replace(/\D/g, ""))) e.phone = "Enter a valid number";
-      if (!form.city.trim()) e.city = "Please enter your city";
+      if (!form.profession.trim()) e.profession = "Please enter your profession";
       if (!form.country.trim()) e.country = "Select a country";
     }
     if (s === 3) {
       if (!form.exhibition_id) e.exhibition_id = "Select an exhibition";
-      if (!form.visit_date) e.visit_date = "Choose a visit date";
+      if (!form.visit_date) e.visit_date = "Please select a visit date";
     }
     setErrors(e);
     return Object.keys(e).length === 0;
   };
 
-  const next = () => { if (validateStep(step)) setStep((s) => s + 1); };
-  const back = () => setStep((s) => s - 1);
+  const next = () => { if (validateStep(step)) setStepAndUrl(step + 1); };
+  const back = () => setStepAndUrl(step - 1);
 
   const submit = async () => {
     if (!validateStep(3)) return;
@@ -107,9 +150,11 @@ export default function RegistrationModal({ exhibition, onClose }) {
     try {
       await axios.post(`${API}/register`, {
         ...form,
+        city: form.profession,    // keep legacy "city" field populated with profession for back-compat
         exhibition_city: currentExhibition?.name || "",
       });
       setSuccess(true);
+      if (onSubmitted) onSubmitted();
     } catch (err) {
       console.error(err);
       alert("Something went wrong. Please try again.");
@@ -122,6 +167,9 @@ export default function RegistrationModal({ exhibition, onClose }) {
     if (e.target === e.currentTarget) onClose();
   };
 
+  // When success in urlSync mode, the parent navigates to /thank-you and unmounts us
+  if (success && urlSync) return null;
+
   return (
     <div className="rl-modal-overlay" data-testid="registration-modal" onClick={overlayClick}>
       <div className="rl-modal" role="dialog" aria-modal="true">
@@ -133,92 +181,24 @@ export default function RegistrationModal({ exhibition, onClose }) {
             <h3>Registration Confirmed!</h3>
             <div className="rl-success-namaste">Namaste <span className="rl-namaste-emoji">🙏</span></div>
             <p className="rl-success-msg">
-              Thank you, <strong>{form.full_name.split(" ")[0] || "seeker"}</strong>, for registering for our exhibition.
-              We are delighted to have you with us.
+              Thank you, <strong>{form.full_name.split(" ")[0] || "seeker"}</strong>. We will reach
+              out to you shortly on WhatsApp & email with the confirmation details for
+              <strong> {currentExhibition?.name}</strong>.
             </p>
-            <p className="rl-success-msg">
-              Your reserved consultation slot is noted below. Our team will reach out to you
-              shortly with a confirmation on WhatsApp & email.
-            </p>
-
-            {currentExhibition && (
-              <div className="rl-success-card" data-testid="success-details">
-                <div className="rl-success-card-head">
-                  <span className="rl-tag" style={{ color: "var(--rl-gold)" }}>Your Exhibition Pass</span>
-                  <span className="rl-success-city">{currentExhibition.name}</span>
-                </div>
-                <div className="rl-success-grid">
-                  <div>
-                    <div className="k">Exhibition</div>
-                    <div className="v">Rudralife · {currentExhibition.name}</div>
-                  </div>
-                  <div>
-                    <div className="k">Visit Date</div>
-                    <div className="v">{form.visit_date}</div>
-                  </div>
-                  <div>
-                    <div className="k">Timings</div>
-                    <div className="v">{currentExhibition.timings || "10:00 AM – 8:00 PM"}</div>
-                  </div>
-                  <div>
-                    <div className="k">Full Schedule</div>
-                    <div className="v">{currentExhibition.dates}</div>
-                  </div>
-                  <div className="rl-success-grid-full">
-                    <div className="k">Venue · Hotel</div>
-                    <div className="v">{currentExhibition.venue}</div>
-                  </div>
-                  <div className="rl-success-grid-full">
-                    <div className="k">Address</div>
-                    <a
-                      className="v rl-maps-link"
-                      href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent((currentExhibition.venue || "") + ", " + (currentExhibition.address || ""))}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      data-testid="success-map-link"
-                    >
-                      {currentExhibition.address} <span className="rl-maps-ext">↗ Open in Maps</span>
-                    </a>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            <p className="rl-success-farewell">
-              If you have any questions, feel free to reach out to us anytime.<br />
-              We look forward to seeing you at the exhibition.
-            </p>
-            <div className="rl-success-regards">
-              Warm regards,<br />
-              <em>Team Rudralife</em>
-            </div>
-
-            <div style={{ marginTop: 28, display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
-              <a
-                href={`https://wa.me/917208819922?text=${encodeURIComponent(`Namaste 🙏 I have just registered for the Rudralife ${currentExhibition?.name || ""} exhibition on ${form.visit_date}. My name is ${form.full_name}.`)}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="rl-btn rl-btn-primary"
-                data-testid="success-whatsapp"
-              >
-                WhatsApp Us ↗
-              </a>
-              <button className="rl-btn-text" data-testid="modal-success-close" onClick={onClose}>Close</button>
+            <div style={{ marginTop: 24, display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap" }}>
+              <button className="rl-btn rl-btn-dark" onClick={onClose} data-testid="success-close">Close</button>
             </div>
           </div>
         ) : (
           <>
             <div className="rl-modal-head">
-              <span className="rl-tag" style={{ color: "#C9920A" }}>Register To Visit</span>
-              <h3 className="rl-modal-title">
-                {currentExhibition ? `Rudralife · ${currentExhibition.name}` : "Rudralife Exhibition"}
-              </h3>
-              <p className="rl-modal-sub">A quiet conversation with our panel experts awaits.</p>
-              <div className="rl-steps">
-                <span className={`rl-step-dot ${step === 1 ? "active" : step > 1 ? "done" : ""}`} />
-                <span className={`rl-step-dot ${step === 2 ? "active" : step > 2 ? "done" : ""}`} />
-                <span className={`rl-step-dot ${step === 3 ? "active" : ""}`} />
-              </div>
+              <div className="rl-modal-steps" data-testid="modal-steps">Step {step} of 3</div>
+              <h3 className="rl-modal-title">Register to Visit</h3>
+              {currentExhibition && (
+                <p className="rl-modal-sub">
+                  <strong>{currentExhibition.name}</strong> · {currentExhibition.dates}
+                </p>
+              )}
             </div>
 
             <div className="rl-modal-body">
@@ -276,15 +256,15 @@ export default function RegistrationModal({ exhibition, onClose }) {
                     {errors.phone && <div className="rl-field-err">{errors.phone}</div>}
                   </div>
                   <div className="rl-field">
-                    <label>Your City</label>
+                    <label>Profession</label>
                     <input
                       type="text"
-                      data-testid="input-city"
-                      value={form.city}
-                      onChange={(e) => update("city", e.target.value)}
-                      placeholder="e.g. Mumbai"
+                      data-testid="input-profession"
+                      value={form.profession}
+                      onChange={(e) => update("profession", e.target.value)}
+                      placeholder="e.g. Business owner, Doctor, Software Engineer…"
                     />
-                    {errors.city && <div className="rl-field-err">{errors.city}</div>}
+                    {errors.profession && <div className="rl-field-err">{errors.profession}</div>}
                   </div>
                   <div className="rl-field">
                     <label>Your Country</label>
@@ -323,6 +303,7 @@ export default function RegistrationModal({ exhibition, onClose }) {
                       value={form.visit_date}
                       onChange={(e) => update("visit_date", e.target.value)}
                     >
+                      <option value="">Select a date…</option>
                       {dateOptions.map((d) => (
                         <option key={d.value} value={d.value}>{d.label}</option>
                       ))}

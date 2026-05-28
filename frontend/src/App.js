@@ -1,5 +1,5 @@
 import { useEffect, useState, createContext, useContext } from "react";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useNavigate } from "react-router-dom";
 import axios from "axios";
 import "@/App.css";
 import Navbar from "@/components/Navbar";
@@ -22,6 +22,7 @@ import Footer from "@/components/sections/Footer";
 import AdminLogin from "@/admin/AdminLogin";
 import AdminDashboard from "@/admin/AdminDashboard";
 import ProtectedRoute from "@/admin/ProtectedRoute";
+import ExhibitionPage from "@/components/sections/ExhibitionPage";
 import { SiteContentProvider } from "@/SiteContent";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
@@ -56,10 +57,7 @@ function useReveal() {
 }
 
 function Landing() {
-  const [modalOpen, setModalOpen] = useState(false);
-  const [notifyCity, setNotifyCity] = useState(null);
-  const [eventDetailsCity, setEventDetailsCity] = useState(null);
-  const [selectedExhibition, setSelectedExhibition] = useState(null);
+  const navigate = useNavigate();
   const [exhibitions, setExhibitions] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -80,18 +78,15 @@ function Landing() {
     return () => { alive = false; clearInterval(t); };
   }, []);
 
-  const openRegistration = (exhibition) => {
-    setSelectedExhibition(exhibition || null);
-    setModalOpen(true);
-  };
-
+  // Per-exhibition deep linking — clicking a city navigates to /exhibition/:slug
+  // which renders the standalone ExhibitionPage (no nav, no other sections).
   const handleCityClick = (city) => {
+    if (!city) return;
+    const slug = city.slug || (city.name || "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
     if (city.status === "live") {
-      // Live → show event details first; Register Now button opens form
-      setEventDetailsCity(city);
+      navigate(`/exhibition/${slug}`);
     } else {
-      // Coming Soon → open Notify Me popup
-      setNotifyCity(city);
+      navigate(`/exhibition/${slug}/coming-soon`);
     }
   };
 
@@ -103,16 +98,12 @@ function Landing() {
   return (
     <ExhibitionsContext.Provider value={{ exhibitions, loading }}>
       <div className="App">
-        <Navbar onRegister={() => openRegistration(null)} />
+        <Navbar onRegister={scrollToExhibitions} />
         <Hero
           onRegister={scrollToExhibitions}
           onKnowMore={scrollToExhibitions}
         />
-        <Exhibitions
-          onCityClick={handleCityClick}
-          onRegister={openRegistration}
-          onNotify={(city) => setNotifyCity(city)}
-        />
+        <Exhibitions onCityClick={handleCityClick} />
         <WhyVisit />
         <Footprint />
         <Collection />
@@ -129,28 +120,6 @@ function Landing() {
             if (el) el.scrollIntoView({ behavior: "smooth" });
           }}
         />
-        {eventDetailsCity && (
-          <EventDetailsModal
-            city={eventDetailsCity}
-            onClose={() => setEventDetailsCity(null)}
-            onRegister={(city) => {
-              setEventDetailsCity(null);
-              openRegistration(city);
-            }}
-          />
-        )}
-        {modalOpen && (
-          <RegistrationModal
-            exhibition={selectedExhibition}
-            onClose={() => setModalOpen(false)}
-          />
-        )}
-        {notifyCity && (
-          <NotifyModal
-            city={notifyCity}
-            onClose={() => setNotifyCity(null)}
-          />
-        )}
       </div>
     </ExhibitionsContext.Provider>
   );
@@ -163,6 +132,14 @@ export default function App() {
         <Routes>
           <Route path="/admin/login" element={<AdminLogin />} />
           <Route path="/admin" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
+          {/* Standalone per-exhibition pages — ad-friendly shareable URLs.
+              /exhibition/:slug                    → event details + register CTA (live) or notify form (soon)
+              /exhibition/:slug/register           → registration form step 1
+              /exhibition/:slug/register/contact   → step 2
+              /exhibition/:slug/register/details   → step 3
+              /exhibition/:slug/thank-you          → confirmation
+              /exhibition/:slug/coming-soon        → notify-me form */}
+          <Route path="/exhibition/:slug/*" element={<ExhibitionPage />} />
           <Route path="*" element={<Landing />} />
         </Routes>
       </SiteContentProvider>

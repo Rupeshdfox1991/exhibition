@@ -2519,3 +2519,58 @@
   .rl-cms-section-head { padding: 14px 16px; }
 }
 
+
+/* ═══ Standalone exhibition page (/exhibition/:slug) ═══ */
+.rl-standalone-bg {
+  min-height: 100vh;
+  width: 100%;
+  background:
+    radial-gradient(ellipse at 30% 0%, rgba(201, 146, 10, 0.18) 0%, transparent 60%),
+    radial-gradient(ellipse at 70% 100%, rgba(201, 146, 10, 0.12) 0%, transparent 55%),
+    linear-gradient(180deg, var(--rl-bg-deep) 0%, #0E0703 100%);
+  position: relative;
+  overflow: auto;
+}
+.rl-standalone-bg::before {
+  content: "ॐ";
+  position: absolute;
+  top: 24px; left: 50%;
+  transform: translateX(-50%);
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 36px;
+  color: var(--rl-gold);
+  opacity: 0.55;
+  pointer-events: none;
+}
+.rl-standalone-bg .rl-modal-overlay { background: transparent; backdrop-filter: none; }
+.rl-page-overlay { background: transparent; backdrop-filter: none; }
+
+.rl-standalone-loading,
+.rl-standalone-error {
+  min-height: 100vh;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  background: var(--rl-bg-deep);
+  color: var(--rl-cream);
+  padding: 40px;
+  text-align: center;
+  gap: 18px;
+}
+.rl-standalone-error h2 {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 32px;
+  color: var(--rl-gold);
+  margin: 0;
+}
+
+/* Worldmap pin — non-clickable static label */
+.rl-worldmap-pin.static {
+  pointer-events: none;
+  background: transparent;
+  border: 0;
+  padding: 0;
+}
+.rl-worldmap-pin.static .rl-worldmap-label {
+  cursor: default;
+}
+

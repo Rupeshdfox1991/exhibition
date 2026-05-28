@@ -1,9 +1,8 @@
 import { useMemo, useState } from "react";
 import { useExhibitions } from "@/App";
 
-// "2026-04-16" + "2026-04-20" → "16th to 20th April 2026"
 function ordinal(n) {
-  const s = ["th","st","nd","rd"], v = n % 100;
+  const s = ["th", "st", "nd", "rd"], v = n % 100;
   return n + (s[(v - 20) % 10] || s[v] || s[0]);
 }
 function formatRange(startISO, endISO) {
@@ -56,6 +55,9 @@ function CityCard({ city, onClick }) {
         ) : (
           <span className="rl-badge rl-badge-soon" data-testid={`badge-soon-${city.id}`}>Coming Soon</span>
         )}
+        {city.type === "international" && (
+          <span className="rl-badge rl-badge-intl" data-testid={`badge-intl-${city.id}`}>🌐 International</span>
+        )}
       </div>
       <div className="rl-city-img-wrap">
         {!imgErr && (
@@ -90,23 +92,16 @@ function CityCard({ city, onClick }) {
   );
 }
 
-export default function Exhibitions({ onCityClick, onRegister, onNotify }) {
-  const [tab, setTab] = useState("domestic");
+export default function Exhibitions({ onCityClick }) {
   const { exhibitions } = useExhibitions();
-  const allCities = useMemo(() => exhibitions.map(adaptExhibition), [exhibitions]);
-  const sortLiveFirst = (a, b) => {
-    if (a.status === b.status) return (a.order ?? 0) - (b.order ?? 0);
-    return a.status === "live" ? -1 : 1;
-  };
-  const domesticCities = useMemo(
-    () => allCities.filter((c) => c.type === "domestic").sort(sortLiveFirst),
-    [allCities]
-  );
-  const internationalCities = useMemo(
-    () => allCities.filter((c) => c.type === "international").sort(sortLiveFirst),
-    [allCities]
-  );
-  const cities = tab === "domestic" ? domesticCities : internationalCities;
+  const cities = useMemo(() => {
+    return exhibitions.map(adaptExhibition).sort((a, b) => {
+      // Live first, then by domestic-before-international, then by order
+      if (a.status !== b.status) return a.status === "live" ? -1 : 1;
+      if (a.type !== b.type) return a.type === "domestic" ? -1 : 1;
+      return (a.order ?? 0) - (b.order ?? 0);
+    });
+  }, [exhibitions]);
 
   return (
     <section className="rl-section rl-section-cream" id="exhibitions" data-testid="exhibitions-section">
@@ -120,34 +115,9 @@ export default function Exhibitions({ onCityClick, onRegister, onNotify }) {
           </p>
         </div>
 
-        <div className="rl-tabs rl-reveal" role="tablist">
-          <button
-            className={`rl-tab ${tab === "domestic" ? "active" : ""}`}
-            onClick={() => setTab("domestic")}
-            data-testid="tab-domestic"
-            role="tab"
-            aria-selected={tab === "domestic"}
-          >
-            <span>🇮🇳</span> Domestic
-          </button>
-          <button
-            className={`rl-tab ${tab === "international" ? "active" : ""}`}
-            onClick={() => setTab("international")}
-            data-testid="tab-international"
-            role="tab"
-            aria-selected={tab === "international"}
-          >
-            <span>🌐</span> International
-          </button>
-        </div>
-
         <div className="rl-city-grid rl-reveal" data-testid="city-grid">
           {cities.map((c) => (
-            <CityCard
-              key={c.id}
-              city={c}
-              onClick={onCityClick}
-            />
+            <CityCard key={c.id} city={c} onClick={onCityClick} />
           ))}
         </div>
       </div>

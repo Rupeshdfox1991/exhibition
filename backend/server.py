@@ -89,7 +89,8 @@ class RegistrationCreate(BaseModel):
     email: EmailStr
     dial_code: str = "+91"
     phone: str
-    city: str
+    city: str = ""              # legacy — kept optional for back-compat
+    profession: str = ""        # new field replacing city
     country: str
     exhibition_id: str
     exhibition_city: str
@@ -127,7 +128,8 @@ class Registration(BaseModel):
     email: str
     dial_code: str = "+91"
     phone: str
-    city: str
+    city: str = ""
+    profession: str = ""
     country: str
     exhibition_id: str
     exhibition_city: str
@@ -147,6 +149,9 @@ class ExhibitionIn(BaseModel):
     venue: str = ""
     address: str = ""
     order: int = 0
+    slug: Optional[str] = ""           # URL slug, e.g. "pune"
+    country_code: str = "IN"           # ISO-2 (IN, US, GB, AE, SG, etc.)
+    dial_code: str = "+91"             # Auto-default for phone field on this exhibition's forms
 
 
 class Exhibition(ExhibitionIn):
@@ -182,11 +187,41 @@ async def root():
     return {"message": "Rudralife API"}
 
 
+# ─────────────────────── Helpers ───────────────────────
+import re as _re
+
+def _slugify(text: str) -> str:
+    s = (text or "").strip().lower()
+    s = _re.sub(r"[^a-z0-9]+", "-", s)
+    s = _re.sub(r"-+", "-", s).strip("-")
+    return s or "exhibition"
+
+
+async def _ensure_unique_slug(base: str, exclude_id: str = "") -> str:
+    """Append -2, -3… if slug already taken by another exhibition."""
+    slug = base
+    n = 2
+    while True:
+        existing = await db.exhibitions.find_one({"slug": slug})
+        if not existing or existing.get("id") == exclude_id:
+            return slug
+        slug = f"{base}-{n}"
+        n += 1
+
+
 @api_router.get("/exhibitions", response_model=List[Exhibition])
 async def list_exhibitions_public():
     """Public list used by the registration form & exhibitions section."""
     docs = await db.exhibitions.find({}, {"_id": 0}).sort([("status", 1), ("order", 1)]).to_list(500)
     return docs
+
+
+@api_router.get("/exhibitions/by-slug/{slug}", response_model=Exhibition)
+async def get_exhibition_by_slug(slug: str):
+    doc = await db.exhibitions.find_one({"slug": slug}, {"_id": 0})
+    if not doc:
+        raise HTTPException(status_code=404, detail="Exhibition not found")
+    return doc
 
 
 @api_router.post("/register", response_model=Registration)
@@ -248,7 +283,10 @@ async def list_exhibitions_admin(admin=Depends(get_current_admin)):
 
 @admin_router.post("/exhibitions", response_model=Exhibition)
 async def create_exhibition(payload: ExhibitionIn, admin=Depends(get_current_admin)):
-    e = Exhibition(**payload.model_dump())
+    data = payload.model_dump()
+    base_slug = _slugify(data.get("slug") or data.get("name", ""))
+    data["slug"] = await _ensure_unique_slug(base_slug)
+    e = Exhibition(**data)
     await db.exhibitions.insert_one(e.model_dump())
     return e
 
@@ -259,6 +297,8 @@ async def update_exhibition(exhibition_id: str, payload: ExhibitionIn, admin=Dep
     if not existing:
         raise HTTPException(status_code=404, detail="Exhibition not found")
     update_doc = payload.model_dump()
+    base_slug = _slugify(update_doc.get("slug") or update_doc.get("name", ""))
+    update_doc["slug"] = await _ensure_unique_slug(base_slug, exclude_id=exhibition_id)
     update_doc["updated_at"] = datetime.now(timezone.utc).isoformat()
     await db.exhibitions.update_one({"id": exhibition_id}, {"$set": update_doc})
     merged = {**existing, **update_doc}
@@ -338,7 +378,7 @@ async def export_registrations(
     ws.title = "Rudralife Leads"
     headers = [
         "Created At", "Full Name", "Email", "Dial Code", "Phone",
-        "City", "Country", "Exhibition", "Visit Date", "Message",
+        "Profession", "Country", "Exhibition", "Visit Date", "Message",
     ]
     ws.append(headers)
     for d in docs:
@@ -348,7 +388,7 @@ async def export_registrations(
             d.get("email", ""),
             d.get("dial_code", ""),
             d.get("phone", ""),
-            d.get("city", ""),
+            d.get("profession", "") or d.get("city", ""),
             d.get("country", ""),
             d.get("exhibition_city", ""),
             d.get("visit_date", ""),
@@ -621,6 +661,22 @@ async def on_startup():
     await db.notify_interest.create_index("created_at")
     await db.notify_cities.create_index("id", unique=True)
     await db.site_content.create_index("id", unique=True)
+    await db.exhibitions.create_index("slug", sparse=True)
+
+    # Backfill slugs + country/dial codes for legacy exhibition docs
+    legacy = await db.exhibitions.find({"$or": [{"slug": {"$exists": False}}, {"slug": ""}]}, {"_id": 0}).to_list(500)
+    for ex in legacy:
+        base = _slugify(ex.get("name", ""))
+        slug = await _ensure_unique_slug(base, exclude_id=ex.get("id", ""))
+        # Country/dial defaults: domestic → IN/+91, international → guess US/+1 if not set
+        country_code = ex.get("country_code") or ("IN" if ex.get("type") == "domestic" else "US")
+        dial_code = ex.get("dial_code") or ("+91" if ex.get("type") == "domestic" else "+1")
+        await db.exhibitions.update_one(
+            {"id": ex["id"]},
+            {"$set": {"slug": slug, "country_code": country_code, "dial_code": dial_code}},
+        )
+    if legacy:
+        logger.info(f"Backfilled slug/dial_code on {len(legacy)} legacy exhibitions")
 
     # Seed notify_cities from exhibitions if collection empty
     if await db.notify_cities.count_documents({}) == 0:
