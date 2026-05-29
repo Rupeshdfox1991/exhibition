@@ -2596,3 +2596,171 @@
 @media (max-width: 540px) {
   .rl-form-meta-line { font-size: 12px; gap: 6px 12px; padding: 8px 12px; }
 }
+
+
+/* ═══ UNIVERSAL THANK-YOU PAGE (/exhibition/thank-you) ═══ */
+.rl-thanks-modal {
+  max-width: 720px;
+  padding: 56px 56px 44px;
+  text-align: center;
+  background: var(--rl-cream);
+  border: 1px solid var(--rl-gold);
+  position: relative;
+}
+.rl-thanks-tick {
+  display: flex; justify-content: center;
+  margin-bottom: 26px;
+}
+.rl-thanks-tick .tick {
+  width: 92px; height: 92px; border-radius: 50%;
+  background: var(--rl-gold);
+  color: var(--rl-bg-deep);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 44px; font-weight: 700;
+  box-shadow: 0 12px 32px -8px rgba(201, 146, 10, 0.55);
+  animation: rl-pop-in 500ms cubic-bezier(0.2, 1.2, 0.6, 1);
+}
+.rl-thanks-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 44px;
+  color: var(--rl-bg-deep);
+  margin: 0 0 8px;
+  letter-spacing: -0.01em;
+  font-weight: 600;
+}
+.rl-thanks-namaste {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 26px;
+  color: var(--rl-gold);
+  font-style: italic;
+  margin-bottom: 28px;
+}
+.rl-thanks-praying { font-style: normal; }
+.rl-thanks-body {
+  font-family: 'Inter', sans-serif;
+  font-size: 15px;
+  line-height: 1.7;
+  color: rgba(42, 30, 16, 0.78);
+  margin: 0 auto 18px;
+  max-width: 540px;
+}
+.rl-thanks-body strong { color: var(--rl-bg-deep); font-weight: 600; }
+
+/* Exhibition Pass — dark luxury card */
+.rl-thanks-pass {
+  margin: 26px auto 22px;
+  background: var(--rl-bg-deep);
+  color: var(--rl-cream);
+  padding: 28px 30px 30px;
+  text-align: left;
+  border: 1px solid rgba(201, 146, 10, 0.32);
+  position: relative;
+}
+.rl-thanks-pass-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding-bottom: 16px;
+  margin-bottom: 22px;
+  border-bottom: 1px dashed rgba(201, 146, 10, 0.45);
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.rl-thanks-pass-label {
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--rl-gold);
+  font-weight: 600;
+  position: relative;
+  padding-bottom: 6px;
+}
+.rl-thanks-pass-label::after {
+  content: "";
+  position: absolute;
+  left: 0; bottom: 0;
+  width: 38px; height: 2px;
+  background: var(--rl-gold);
+}
+.rl-thanks-pass-city {
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: 28px;
+  color: var(--rl-cream);
+  line-height: 1;
+}
+.rl-thanks-pass-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 22px 32px;
+}
+.rl-thanks-pass-wide { grid-column: 1 / -1; }
+.rl-thanks-k {
+  font-family: 'Inter', sans-serif;
+  font-size: 11px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--rl-gold);
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+.rl-thanks-v {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 18px;
+  color: var(--rl-cream);
+  line-height: 1.45;
+  font-weight: 500;
+}
+.rl-thanks-maps {
+  display: inline-block;
+  margin-top: 10px;
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--rl-gold);
+  text-decoration: none;
+  border-bottom: 1px solid rgba(201, 146, 10, 0.45);
+  padding-bottom: 2px;
+  transition: color 200ms, border-color 200ms;
+}
+.rl-thanks-maps:hover { color: #E5B743; border-color: #E5B743; }
+
+.rl-thanks-regards {
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  color: rgba(42, 30, 16, 0.7);
+  line-height: 1.7;
+  margin: 24px 0 28px;
+}
+.rl-thanks-regards em {
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  color: var(--rl-gold);
+  font-size: 16px;
+}
+.rl-thanks-actions {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 18px;
+  flex-wrap: wrap;
+}
+.rl-thanks-actions .rl-btn-primary {
+  min-width: 220px;
+  letter-spacing: 0.22em;
+}
+
+@media (max-width: 720px) {
+  .rl-thanks-modal { padding: 44px 24px 32px; }
+  .rl-thanks-title { font-size: 32px; }
+  .rl-thanks-namaste { font-size: 22px; margin-bottom: 22px; }
+  .rl-thanks-tick .tick { width: 76px; height: 76px; font-size: 36px; }
+  .rl-thanks-body { font-size: 14px; }
+  .rl-thanks-pass { padding: 22px 20px; }
+  .rl-thanks-pass-grid { grid-template-columns: 1fr; gap: 18px; }
+  .rl-thanks-pass-city { font-size: 24px; }
+  .rl-thanks-v { font-size: 16px; }
+  .rl-thanks-actions .rl-btn-primary { min-width: 180px; width: 100%; }
+}

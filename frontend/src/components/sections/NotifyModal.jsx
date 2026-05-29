@@ -1,10 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 import { countries } from "@/data/countries";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
-export default function NotifyModal({ city, type = "domestic", onClose }) {
+export default function NotifyModal({ city, type = "domestic", onClose, urlSync = false }) {
+  const navigate = useNavigate();
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
   const [errors, setErrors] = useState({});
@@ -60,7 +62,22 @@ export default function NotifyModal({ city, type = "domestic", onClose }) {
     setSubmitting(true);
     try {
       await axios.post(`${API}/notify-interest`, form);
-      setSuccess(true);
+      // Persist for /exhibition/thank-you page
+      try {
+        sessionStorage.setItem("rl_last_submission", JSON.stringify({
+          kind: "notify",
+          full_name: form.full_name,
+          email: form.email,
+          phone: form.phone,
+          exhibition_name: form.interested_city || city?.name || "",
+          exhibition_city: form.interested_city || city?.name || "",
+        }));
+      } catch {}
+      if (urlSync) {
+        navigate("/exhibition/thank-you");
+      } else {
+        setSuccess(true);
+      }
     } catch (err) {
       alert("Something went wrong. Please try again.");
     } finally { setSubmitting(false); }

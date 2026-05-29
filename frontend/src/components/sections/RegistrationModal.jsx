@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import axios from "axios";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { countries } from "@/data/countries";
 import { useExhibitions } from "@/App";
 import { adaptExhibition } from "@/components/sections/Exhibitions";
@@ -31,20 +31,13 @@ const DIAL_BY_COUNTRY = {
 
 export default function RegistrationModal({ exhibition, onClose, urlSync = false, slug = "", onSubmitted }) {
   const navigate = useNavigate();
-  const loc = useLocation();
   const { exhibitions: rawExhibitions } = useExhibitions();
   const allCities = useMemo(() => rawExhibitions.map(adaptExhibition), [rawExhibitions]);
   const liveList = useMemo(() => allCities.filter((c) => c.status === "live"), [allCities]);
 
-  // Determine starting step from URL when urlSync is on (refresh-safe deep links)
-  const stepFromUrl = () => {
-    if (!urlSync) return 1;
-    const p = loc.pathname;
-    if (p.endsWith("/register/contact")) return 2;
-    if (p.endsWith("/register/details")) return 3;
-    return 1;
-  };
-  const [step, setStep] = useState(stepFromUrl());
+  // URL stays static at /exhibition/:slug/register for ALL 3 steps (marketing-friendly).
+  // Step is purely client-side state; never reflected in the URL.
+  const [step, setStep] = useState(1);
 
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -111,17 +104,6 @@ export default function RegistrationModal({ exhibition, onClose, urlSync = false
 
   const update = (k, v) => setForm((f) => ({ ...f, [k]: v }));
 
-  // Sync step → URL when in url-sync standalone mode
-  const setStepAndUrl = (s) => {
-    setStep(s);
-    if (!urlSync || !slug) return;
-    const path =
-      s === 1 ? `/exhibition/${slug}/register`
-      : s === 2 ? `/exhibition/${slug}/register/contact`
-      : `/exhibition/${slug}/register/details`;
-    if (loc.pathname !== path) navigate(path, { replace: false });
-  };
-
   const validateStep = (s) => {
     const e = {};
     if (s === 1) {
@@ -143,8 +125,8 @@ export default function RegistrationModal({ exhibition, onClose, urlSync = false
     return Object.keys(e).length === 0;
   };
 
-  const next = () => { if (validateStep(step)) setStepAndUrl(step + 1); };
-  const back = () => setStepAndUrl(step - 1);
+  const next = () => { if (validateStep(step)) setStep((s) => s + 1); };
+  const back = () => setStep((s) => Math.max(1, s - 1));
 
   const submit = async () => {
     if (!validateStep(3)) return;
@@ -155,8 +137,28 @@ export default function RegistrationModal({ exhibition, onClose, urlSync = false
         city: form.profession,    // keep legacy "city" field populated with profession for back-compat
         exhibition_city: currentExhibition?.name || "",
       });
-      setSuccess(true);
-      if (onSubmitted) onSubmitted();
+      // Persist details for the universal /exhibition/thank-you page.
+      try {
+        sessionStorage.setItem("rl_last_submission", JSON.stringify({
+          kind: "register",
+          full_name: form.full_name,
+          email: form.email,
+          phone: form.phone,
+          visit_date: form.visit_date,
+          exhibition_name: currentExhibition?.name || "",
+          exhibition_city: currentExhibition?.name || "",
+          dates: currentExhibition?.dates || "",
+          timings: currentExhibition?.timings || "",
+          venue: currentExhibition?.venue || "",
+          address: currentExhibition?.address || currentExhibition?.venue_address || "",
+        }));
+      } catch {}
+      if (urlSync) {
+        navigate("/exhibition/thank-you");
+      } else {
+        setSuccess(true);
+        if (onSubmitted) onSubmitted();
+      }
     } catch (err) {
       console.error(err);
       alert("Something went wrong. Please try again.");
