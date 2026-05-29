@@ -23,6 +23,7 @@ import AdminLogin from "@/admin/AdminLogin";
 import AdminDashboard from "@/admin/AdminDashboard";
 import ProtectedRoute from "@/admin/ProtectedRoute";
 import ExhibitionPage from "@/components/sections/ExhibitionPage";
+import ThankYouPage from "@/components/sections/ThankYouPage";
 import { SiteContentProvider } from "@/SiteContent";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
@@ -139,6 +140,8 @@ export default function App() {
           <Routes>
             <Route path="/admin/login" element={<AdminLogin />} />
             <Route path="/admin" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
+            {/* Universal thank-you page — same URL for all exhibitions; content driven by sessionStorage. */}
+            <Route path="/exhibition/thank-you" element={<ThankYouPage />} />
             <Route path="/exhibition/:slug/*" element={<ExhibitionPage />} />
             <Route path="*" element={<Landing />} />
           </Routes>
