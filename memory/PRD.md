@@ -19,6 +19,17 @@ See `/app/memory/test_credentials.md`
 
 ## Implemented (cumulative, latest first)
 
+### Iteration 22 (Feb 2026) — Universal Thank-You URL + Static Form URL
+- **URL stays STATIC at `/exhibition/:slug/register` for ALL 3 registration steps.** Removed `/register/contact` and `/register/details` URL changes. Step is purely client-side state.
+- **One UNIVERSAL Thank-You URL: `/exhibition/thank-you`** for both Live registrations and Coming-Soon Notify submissions (marketing-friendly — single conversion URL for pixel tracking).
+- **`ThankYouPage.jsx`** reads `sessionStorage.rl_last_submission` (written by both `RegistrationModal` and `NotifyModal` on submit success). Renders:
+  - Gold ✓ tick, "Registration Confirmed!" headline (or "We Have Your Interest!" for notify branch)
+  - "Namaste 🙏" cursive gold subtitle
+  - Personalised body copy with the user's first name
+  - Dark luxury **YOUR EXHIBITION PASS** card showing Exhibition · Visit Date · Timings · Full Schedule · Venue · Address + ↗ Open in Maps link (live-register branch only)
+  - "Warm regards, Team Rudralife" + gold **WHATSAPP US ↗** CTA (`wa.me/917208819922` with prefilled message including user name + exhibition + date) + **CLOSE**
+- **Removed** the obsolete inline `NamasteThankYou` inside `ExhibitionPage.jsx`. Tested via iteration_14.json — 7/7 acceptance criteria PASS.
+
 
 ### Iteration 21 (Feb 2026) — Combined grid, per-exhibition URLs, profession, dial-by-country
 - **Removed Domestic / International tabs**. Single combined `.rl-city-grid` shows all exhibitions sorted by status (live first) → type → order. International cards just carry a `🌐 International` badge.
