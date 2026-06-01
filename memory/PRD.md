@@ -19,8 +19,21 @@ See `/app/memory/test_credentials.md`
 
 ## Implemented (cumulative, latest first)
 
-### Iteration 22 (Feb 2026) — Universal Thank-You URL + Static Form URL
-- **URL stays STATIC at `/exhibition/:slug/register` for ALL 3 registration steps.** Removed `/register/contact` and `/register/details` URL changes. Step is purely client-side state.
+### Iteration 23 (Feb 2026) — Strictly Invariant URL + Universal Simplified Thank-You
+- **URL stays EXACTLY `/exhibition/:slug` for the entire user journey** — Event Details modal, all 3 Registration form steps, AND Notify-Me form. Removed all `/register`, `/register/contact`, `/register/details`, `/coming-soon` URL fragments.
+- **`ExhibitionPage` switched to internal `view` state** ("details" | "register") — URL never changes during the form flow. Landing-page card click goes to `/exhibition/${slug}` for both Live and Coming-Soon (one URL pattern for everything per exhibition).
+- **One universal `/exhibition/thank-you` URL** for Live registration AND Coming-Soon notify success. Same destination from all 30+ exhibition slugs — single conversion URL for pixel/marketing tracking.
+- **Thank-You page content simplified to user's exact copy** (luxury universal — NO exhibition pass card, NO per-exhibition data lookup):
+  - Gold ✓ tick · "Registration Confirmed! 🎉" · "Namaste 🙏"
+  - "Thank you for registering for the **Rudralife Exhibition**. Your registration has been successfully confirmed."
+  - "We look forward to welcoming you and helping you explore our authentic Rudraksha collection, spiritual products, and special exhibition offers."
+  - "See you at the exhibition!" (cursive gold)
+  - "Team Rudralife 🙏✨" (cursive gold)
+  - WhatsApp Us ↗ CTA (`wa.me/917208819922` with prefilled message) + Close
+- **Tested via testing_agent_v3** (iteration_15.json): 11/11 acceptance criteria PASS at 100%.
+
+### Iteration 22 (Feb 2026) — Universal Thank-You URL (deprecated by iteration 23)
+- **URL stays STATIC at `/exhibition/:slug/register` for ALL 3 registration steps.**
 - **One UNIVERSAL Thank-You URL: `/exhibition/thank-you`** for both Live registrations and Coming-Soon Notify submissions (marketing-friendly — single conversion URL for pixel tracking).
 - **`ThankYouPage.jsx`** reads `sessionStorage.rl_last_submission` (written by both `RegistrationModal` and `NotifyModal` on submit success). Renders:
   - Gold ✓ tick, "Registration Confirmed!" headline (or "We Have Your Interest!" for notify branch)
