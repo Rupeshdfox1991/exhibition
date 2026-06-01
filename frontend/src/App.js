@@ -87,16 +87,12 @@ function Landing() {
 
   useReveal();
 
-  // Per-exhibition deep linking — clicking a city navigates to /exhibition/:slug
-  // which renders the standalone ExhibitionPage (no nav, no other sections).
+  // Per-exhibition deep linking — clicking any city (live OR soon) navigates to /exhibition/:slug.
+  // No /register, no /coming-soon — ExhibitionPage internally switches between detail/form views.
   const handleCityClick = (city) => {
     if (!city) return;
     const slug = city.slug || (city.name || "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
-    if (city.status === "live") {
-      navigate(`/exhibition/${slug}`);
-    } else {
-      navigate(`/exhibition/${slug}/coming-soon`);
-    }
+    navigate(`/exhibition/${slug}`);
   };
 
   const scrollToExhibitions = () => {

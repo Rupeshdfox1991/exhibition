@@ -2636,7 +2636,7 @@
   margin-bottom: 28px;
 }
 .rl-thanks-praying { font-style: normal; }
-.rl-thanks-body {
+.rl-thanks-body { 
   font-family: 'Inter', sans-serif;
   font-size: 15px;
   line-height: 1.7;
@@ -2645,6 +2645,15 @@
   max-width: 540px;
 }
 .rl-thanks-body strong { color: var(--rl-bg-deep); font-weight: 600; }
+.rl-thanks-tagline {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 22px;
+  font-style: italic;
+  color: var(--rl-gold);
+  margin-top: 24px;
+  margin-bottom: 8px;
+}
+.rl-thanks-celebrate { font-style: normal; }
 
 /* Exhibition Pass — dark luxury card */
 .rl-thanks-pass {
