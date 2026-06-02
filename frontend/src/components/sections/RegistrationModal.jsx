@@ -238,7 +238,7 @@ export default function RegistrationModal({ exhibition, onClose, urlSync = false
                         value={form.dial_code}
                         onChange={(e) => update("dial_code", e.target.value)}
                       >
-                        <option value="">Select Country Code…</option>
+                        <option value="">Select Country</option>
                         {countries.map((c) => (
                           <option key={c.code + c.dial} value={c.dial}>
                             {c.flag} {c.name} ({c.dial})

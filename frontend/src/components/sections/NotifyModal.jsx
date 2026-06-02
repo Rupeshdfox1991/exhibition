@@ -126,7 +126,7 @@ export default function NotifyModal({ city, type = "domestic", onClose, urlSync 
                 <label>Phone Number</label>
                 <div className="rl-phone-row">
                   <select data-testid="notify-dialcode" value={form.dial_code} onChange={(e) => update("dial_code", e.target.value)}>
-                    <option value="">Select Country Code…</option>
+                    <option value="">Select Country</option>
                     {countries.map((c) => (<option key={c.code + c.dial} value={c.dial}>{c.flag} {c.name} ({c.dial})</option>))}
                   </select>
                   <input type="tel" data-testid="notify-phone" value={form.phone} onChange={(e) => update("phone", e.target.value)} placeholder="98xxxxxxxx" />

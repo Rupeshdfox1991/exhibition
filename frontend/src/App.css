@@ -591,7 +591,16 @@
 .rl-field textarea { resize: vertical; min-height: 90px; font-family: 'Inter', sans-serif; }
 .rl-field-err { color: var(--rl-red); font-size: 12px; margin-top: 6px; }
 
-.rl-phone-row { display: grid; grid-template-columns: 130px 1fr; gap: 10px; }
+.rl-phone-row { display: grid; grid-template-columns: 200px 1fr; gap: 10px; }
+.rl-phone-row select {
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+  padding-right: 28px !important;
+}
+@media (max-width: 540px) {
+  .rl-phone-row { grid-template-columns: 1fr; }
+}
 
 .rl-modal-foot {
   display: flex; justify-content: space-between; gap: 12px;
