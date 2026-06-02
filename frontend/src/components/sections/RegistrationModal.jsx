@@ -43,10 +43,7 @@ export default function RegistrationModal({ exhibition, onClose, urlSync = false
   const [success, setSuccess] = useState(false);
   const [errors, setErrors] = useState({});
 
-  // Auto-fill dial code + country from exhibition (admin-controlled per exhibition)
-  const defaultDial = exhibition?.dial_code
-    || DIAL_BY_COUNTRY[exhibition?.country_code]
-    || (exhibition?.type === "international" ? "+1" : "+91");
+  // Country auto-defaults from exhibition's country_code (not the dial code — user must explicitly pick that)
   const defaultCountry = exhibition?.country_code
     ? (countries.find((c) => c.code === exhibition.country_code)?.name)
       || (exhibition?.type === "international" ? "United States" : "India")
@@ -55,7 +52,7 @@ export default function RegistrationModal({ exhibition, onClose, urlSync = false
   const [form, setForm] = useState({
     full_name: "",
     email: "",
-    dial_code: defaultDial,
+    dial_code: "",   // user must select — no default
     phone: "",
     profession: "",
     country: defaultCountry,
@@ -79,15 +76,12 @@ export default function RegistrationModal({ exhibition, onClose, urlSync = false
     [form.exhibition_id, exhibition, allCities, liveList]
   );
 
-  // When the selected exhibition changes, auto-adjust dial code + country
+  // When the selected exhibition changes, auto-adjust country only (dial code stays user-selected).
   useEffect(() => {
     if (!currentExhibition) return;
-    const d = currentExhibition.dial_code
-      || DIAL_BY_COUNTRY[currentExhibition.country_code]
-      || (currentExhibition.type === "international" ? "+1" : "+91");
     const c = (countries.find((c) => c.code === currentExhibition.country_code)?.name)
       || (currentExhibition.type === "international" ? "United States" : "India");
-    setForm((f) => ({ ...f, dial_code: d, country: c }));
+    setForm((f) => ({ ...f, country: c }));
   }, [currentExhibition?.id]); // eslint-disable-line
 
   const dateOptions = useMemo(() => getDateOptions(currentExhibition?.dateRange), [currentExhibition]);
@@ -112,6 +106,7 @@ export default function RegistrationModal({ exhibition, onClose, urlSync = false
       else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) e.email = "Enter a valid email";
     }
     if (s === 2) {
+      if (!form.dial_code) e.dial_code = "Please select a country code";
       if (!form.phone.trim()) e.phone = "Please enter phone number";
       else if (!/^\d{6,15}$/.test(form.phone.replace(/\D/g, ""))) e.phone = "Enter a valid number";
       if (!form.profession.trim()) e.profession = "Please enter your profession";
@@ -243,9 +238,10 @@ export default function RegistrationModal({ exhibition, onClose, urlSync = false
                         value={form.dial_code}
                         onChange={(e) => update("dial_code", e.target.value)}
                       >
+                        <option value="">Select Country Code…</option>
                         {countries.map((c) => (
                           <option key={c.code + c.dial} value={c.dial}>
-                            {c.flag} {c.dial}
+                            {c.flag} {c.name} ({c.dial})
                           </option>
                         ))}
                       </select>
@@ -257,6 +253,7 @@ export default function RegistrationModal({ exhibition, onClose, urlSync = false
                         placeholder="98xxxxxxxx"
                       />
                     </div>
+                    {errors.dial_code && <div className="rl-field-err">{errors.dial_code}</div>}
                     {errors.phone && <div className="rl-field-err">{errors.phone}</div>}
                   </div>
                   <div className="rl-field">

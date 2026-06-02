@@ -14,7 +14,7 @@ export default function NotifyModal({ city, type = "domestic", onClose, urlSync 
   const [form, setForm] = useState({
     full_name: "",
     email: "",
-    dial_code: "+91",
+    dial_code: "",   // user must select — no default
     phone: "",
     interested_city: city?.name || "",
     exhibition_id: city?.id || "",
@@ -50,6 +50,7 @@ export default function NotifyModal({ city, type = "domestic", onClose, urlSync 
     if (!form.full_name.trim()) e.full_name = "Please enter your name";
     if (!form.email.trim()) e.email = "Please enter your email";
     else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) e.email = "Enter a valid email";
+    if (!form.dial_code) e.dial_code = "Please select a country code";
     if (!form.phone.trim()) e.phone = "Please enter phone number";
     else if (!/^\d{6,15}$/.test(form.phone.replace(/\D/g, ""))) e.phone = "Enter a valid number";
     if (!form.interested_city.trim()) e.interested_city = "Please select a city";
@@ -125,10 +126,12 @@ export default function NotifyModal({ city, type = "domestic", onClose, urlSync 
                 <label>Phone Number</label>
                 <div className="rl-phone-row">
                   <select data-testid="notify-dialcode" value={form.dial_code} onChange={(e) => update("dial_code", e.target.value)}>
-                    {countries.map((c) => (<option key={c.code + c.dial} value={c.dial}>{c.flag} {c.dial}</option>))}
+                    <option value="">Select Country Code…</option>
+                    {countries.map((c) => (<option key={c.code + c.dial} value={c.dial}>{c.flag} {c.name} ({c.dial})</option>))}
                   </select>
                   <input type="tel" data-testid="notify-phone" value={form.phone} onChange={(e) => update("phone", e.target.value)} placeholder="98xxxxxxxx" />
                 </div>
+                {errors.dial_code && <div className="rl-field-err">{errors.dial_code}</div>}
                 {errors.phone && <div className="rl-field-err">{errors.phone}</div>}
               </div>
               <div className="rl-field">
