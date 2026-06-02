@@ -19,6 +19,13 @@ See `/app/memory/test_credentials.md`
 
 ## Implemented (cumulative, latest first)
 
+### Iteration 24 (Feb 2026) — Mandatory Country Code Selection
+- **Country code dropdown no longer defaults to +91** in either RegistrationModal (Step 2) or NotifyModal.
+- New first option: **"Select Country Code…"** placeholder.
+- Option labels now show full country name + dial code (e.g. **🇮🇳 India (+91)**, **🇬🇧 United Kingdom (+44)**, **🇺🇸 United States (+1)**, **🇦🇪 UAE (+971)**, **🇸🇬 Singapore (+65)**).
+- Validation: form CANNOT advance (Step 2 → Step 3) or submit (Notify) until BOTH dial code is selected AND phone number entered. Error message: "Please select a country code".
+- Tested via testing_agent_v3 iteration_16.json — 100% PASS, URL invariance regression also confirmed.
+
 ### Iteration 23 (Feb 2026) — Strictly Invariant URL + Universal Simplified Thank-You
 - **URL stays EXACTLY `/exhibition/:slug` for the entire user journey** — Event Details modal, all 3 Registration form steps, AND Notify-Me form. Removed all `/register`, `/register/contact`, `/register/details`, `/coming-soon` URL fragments.
 - **`ExhibitionPage` switched to internal `view` state** ("details" | "register") — URL never changes during the form flow. Landing-page card click goes to `/exhibition/${slug}` for both Live and Coming-Soon (one URL pattern for everything per exhibition).
