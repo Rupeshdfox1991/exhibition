@@ -149,7 +149,7 @@ export default function RegistrationModal({ exhibition, onClose, urlSync = false
         }));
       } catch {}
       if (urlSync) {
-        navigate("/exhibition/thank-you");
+        navigate(slug ? `/exhibition/${slug}/thank-you` : "/exhibition/thank-you");
       } else {
         setSuccess(true);
         if (onSubmitted) onSubmitted();

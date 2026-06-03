@@ -136,7 +136,9 @@ export default function App() {
           <Routes>
             <Route path="/admin/login" element={<AdminLogin />} />
             <Route path="/admin" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
-            {/* Universal thank-you page — same URL for all exhibitions; content driven by sessionStorage. */}
+            {/* Per-exhibition thank-you — same universal content, exhibition-specific URL. */}
+            <Route path="/exhibition/:slug/thank-you" element={<ThankYouPage />} />
+            {/* Universal fallback (kept for back-compat & direct link sharing). */}
             <Route path="/exhibition/thank-you" element={<ThankYouPage />} />
             <Route path="/exhibition/:slug/*" element={<ExhibitionPage />} />
             <Route path="*" element={<Landing />} />

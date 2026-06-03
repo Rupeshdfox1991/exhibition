@@ -19,6 +19,12 @@ See `/app/memory/test_credentials.md`
 
 ## Implemented (cumulative, latest first)
 
+### Iteration 25 (Feb 2026) — Per-Exhibition Thank-You URL
+- **Thank-You URL is now slug-aware**: `/exhibition/chennai/thank-you`, `/exhibition/hyderabad/thank-you`, etc. Each exhibition (live or coming-soon) lands on its own thank-you URL.
+- **Thank-You page content is unchanged** — same universal "Registration Confirmed! 🎉 / Namaste 🙏 / See you at the exhibition! / Team Rudralife 🙏✨" + WhatsApp Us + Close.
+- New route `<Route path="/exhibition/:slug/thank-you" element={<ThankYouPage />} />` declared BEFORE `/exhibition/:slug/*`. The legacy `/exhibition/thank-you` URL is kept for back-compat.
+- `RegistrationModal` & `NotifyModal` submit handlers now build the redirect from the current slug: `navigate('/exhibition/${slug}/thank-you')`.
+
 ### Iteration 24 (Feb 2026) — Mandatory Country Code Selection
 - **Country code dropdown no longer defaults to +91** in either RegistrationModal (Step 2) or NotifyModal.
 - New first option: **"Select Country Code…"** placeholder.

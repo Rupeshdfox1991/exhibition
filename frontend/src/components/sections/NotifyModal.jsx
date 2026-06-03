@@ -75,7 +75,8 @@ export default function NotifyModal({ city, type = "domestic", onClose, urlSync 
         }));
       } catch {}
       if (urlSync) {
-        navigate("/exhibition/thank-you");
+        const slug = city?.slug || "";
+        navigate(slug ? `/exhibition/${slug}/thank-you` : "/exhibition/thank-you");
       } else {
         setSuccess(true);
       }
