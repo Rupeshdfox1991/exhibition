@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import { useExhibitions } from "@/App";
-import { useSiteContent, pick } from "@/SiteContent";const DEFAULT_MAP_URL =
-  "https://customer-assets.emergentagent.com/job_sacred-rudraksha-hub/artifacts/dghkanxm_image.png";
+import { useSiteContent, pick } from "@/SiteContent";
+const DEFAULT_MAP_URL =`${process.env.PUBLIC_URL}/images/dghkanxm_image.png`;
 
 /*
  * Pin positions calibrated for the uploaded globe projection

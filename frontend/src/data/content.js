@@ -7,7 +7,7 @@ export const products = [
   { id: "agya-chakra",       name: "Agya Chakra® in Gold (14 Mukhi)", benefit: "For Sharp Intuition & Decisive Clarity",      img: `${RL_BASE}/rudraksha/14-Mukhi-Rudraksha.jpg` },
   { id: "gaurishankar-gold", name: "Gaurishankar Rudraksha in Gold",  benefit: "For Harmony, Unity & Strong Relationships",   img: `${RL_BASE}/rudraksha/Gold-Gaurishankar-Rudraksha.jpg` },
   { id: "shani-kantha",      name: "Shani Kantha",                    benefit: "For Stability, Protection & Long-Term Success", img: `${RL_BASE}/rudraksha/Shani-Kantha.jpg` },
-  { id: "surya-power",       name: "Surya Power® in Gold (12 Mukhi)", benefit: "For Leadership, Confidence & Inner Strength", img: `${RL_BASE}/rudraksha/Indramala.jpg` },
+  { id: "surya-power",       name: "Surya Power® in Gold (12 Mukhi)", benefit: "For Leadership, Confidence & Inner Strength", img: `${RL_BASE}/rudraksha/12-Mukhi-Rudraksha.jpg` },
   { id: "kalinetra",         name: "Kalinetra in Gold (9 Mukhi)",     benefit: "For Fearlessness, Energy & Inner Power",      img: `${RL_BASE}/rudraksha/9-Mukhi-Rudraksha.jpg` },
   { id: "1-mukhi-gold",      name: "1 Mukhi Rudraksha in Gold",       benefit: "For Enlightenment, Focus & Supreme Consciousness", img: `${RL_BASE}/rudraksha/1-Mukhi-Rudraksha.jpg` },
   { id: "indra-mala",        name: "Indra Mala",                      benefit: "For Supreme Power, Prosperity & Divine Abundance", img: `${RL_BASE}/rudraksha/Indramala.jpg` },

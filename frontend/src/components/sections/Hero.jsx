@@ -1,7 +1,6 @@
 import { useSiteContent, pick } from "@/SiteContent";
 
-const DEFAULT_BANNER =
-  "https://customer-assets.emergentagent.com/job_sacred-rudraksha-hub/artifacts/k4161fa8_1920%20x%20720%20Siddha%20Mala%20website%20Banner%2002%20copy.jpg%20%281%29.jpeg";
+const DEFAULT_BANNER =`${process.env.PUBLIC_URL}/images/siddha-mala-website-banner.jpeg`;
 
 const BeadIcon = ({ size = 16 }) => (
   <svg width={size} height={size} viewBox="0 0 32 32" fill="none" aria-hidden="true" style={{ flexShrink: 0 }}>

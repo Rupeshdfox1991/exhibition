@@ -1,7 +1,6 @@
 import { useSiteContent, pick } from "@/SiteContent";
 
-const DEFAULT_LOGO =
-  "https://customer-assets.emergentagent.com/job_b271b1af-1da5-4630-96e0-320d96eb6add/artifacts/pm9yuvf5_New%20Rudralife%20final%20logo%20with%20tagline%20%28White%29%20%281%29.png";
+const DEFAULT_LOGO =`${process.env.PUBLIC_URL}/images/logo.png`;
 
 const DEFAULT_SOCIALS = [
   { type: "instagram", url: "https://instagram.com/rudralife" },

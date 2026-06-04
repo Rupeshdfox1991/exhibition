@@ -19,6 +19,7 @@ import logging
 import shutil
 import bcrypt
 import jwt as pyjwt
+import requests
 from openpyxl import Workbook
 
 # ─────────────────────── DB ───────────────────────
@@ -181,6 +182,33 @@ class SiteContentIn(BaseModel):
     model_config = ConfigDict(extra="allow")
 
 
+    # ==========================================
+# GET ZOHO ACCESS TOKEN
+# ==========================================
+
+def get_zoho_access_token():
+
+    url = "https://accounts.zoho.in/oauth/v2/token"
+
+    params = {
+        "refresh_token": os.getenv("ZOHO_REFRESH_TOKEN"),
+        "client_id": os.getenv("ZOHO_CLIENT_ID"),
+        "client_secret": os.getenv("ZOHO_CLIENT_SECRET"),
+        "grant_type": "refresh_token"
+    }
+
+    response = requests.post(url, params=params)
+
+    token_data = response.json()
+
+    # logger.info(f"Zoho Token Response: {token_data}")
+
+    if "access_token" not in token_data:
+        raise Exception(f"Unable to generate Zoho access token: {token_data}")
+
+    return token_data["access_token"]    
+
+
 # ─────────────────────── Public endpoints ───────────────────────
 @api_router.get("/")
 async def root():
@@ -228,6 +256,47 @@ async def get_exhibition_by_slug(slug: str):
 async def create_registration(payload: RegistrationCreate):
     reg = Registration(**payload.model_dump())
     await db.registrations.insert_one(reg.model_dump())
+
+    # Push to Zoho CRM
+    try:
+        access_token = get_zoho_access_token()
+
+        
+
+        zoho_payload = {
+            "data": [
+                {
+                    "Last_Name": payload.full_name,
+                    "Lead_Source": f"{payload.exhibition_city} Exhibition",
+                    "Mobile": f"{payload.dial_code.replace('+', '')}"
+                              f"{payload.phone.replace(' ', '')}",
+                    "Email": payload.email,
+                    "Profession": payload.profession,
+                    "Country": payload.country,
+                    "Description": payload.message
+                }
+            ]
+        }
+
+        zoho_response = requests.post(
+            "https://www.zohoapis.in/crm/v2/Leads",
+            json=zoho_payload,
+            headers={
+                "Authorization": f"Zoho-oauthtoken {access_token}",
+                "Content-Type": "application/json"
+            }
+        )
+
+        if zoho_response.status_code not in [200, 201]:
+            logger.error(
+                f"Zoho CRM Error: {zoho_response.text}"
+            )
+
+    except Exception as e:
+        logger.error(
+            f"Zoho Integration Error: {str(e)}"
+        )
+
     return reg
 
 
@@ -235,6 +304,44 @@ async def create_registration(payload: RegistrationCreate):
 async def create_notify_interest(payload: NotifyInterestCreate):
     rec = NotifyInterest(**payload.model_dump())
     await db.notify_interest.insert_one(rec.model_dump())
+
+        # Push to Zoho CRM
+    try:
+        access_token = get_zoho_access_token()
+
+        
+
+        zoho_payload = {
+            "data": [
+                {
+                    "Last_Name": payload.full_name,
+                    "Lead_Source": f"{payload.interested_city} Exhibition",
+                    "Mobile": f"{payload.dial_code.replace('+', '')}"
+                              f"{payload.phone.replace(' ', '')}",
+                    "Email": payload.email
+                }
+            ]
+        }
+
+        zoho_response = requests.post(
+            "https://www.zohoapis.in/crm/v2/Leads",
+            json=zoho_payload,
+            headers={
+                "Authorization": f"Zoho-oauthtoken {access_token}",
+                "Content-Type": "application/json"
+            }
+        )
+
+        if zoho_response.status_code not in [200, 201]:
+            logger.error(
+                f"Zoho CRM Error: {zoho_response.text}"
+            )
+
+    except Exception as e:
+        logger.error(
+            f"Zoho Integration Error: {str(e)}"
+        )
+
     return rec
 
 
